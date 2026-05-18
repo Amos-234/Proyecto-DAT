@@ -1,1 +1,6 @@
 
+.icono_Telecom {
+  width: 50px;  /* Ajusta el ancho a tu gusto */
+  height: auto; /* Mantiene la proporción */
+  display: block;
+}
