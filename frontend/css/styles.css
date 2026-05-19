@@ -71,6 +71,7 @@
     min-height: 48px; /* Fuerza el espacio vertical de 2 líneas (ajusta si es necesario) */
     display: -webkit-box;
     -webkit-line-clamp: 2; /* Si el texto supera las 2 líneas, pone puntos suspensivos */
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
