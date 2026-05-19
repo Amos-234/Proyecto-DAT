@@ -1,4 +1,5 @@
-// 1. DATOS SIMULADOS (Mock Data)
+// Mock de datos para desarrollo del Frontend. 
+// Pendiente de sustitución por peticiones asíncronas (fetch) a la API REST.
 const productosMock = [
     { id: 1, nombre: "Switch Cisco Catalyst 2960", marca: "Cisco", categoria: "Switches", precio: 250.00, imagen: "https://via.placeholder.com/600x400?text=Switch+Cisco", descripcion: "Switch de 24 puertos Gigabit, ideal para pequeñas y medianas empresas. Alta fiabilidad y rendimiento." },
     { id: 2, nombre: "Router Ubiquiti EdgeRouter 4", marca: "Ubiquiti", categoria: "Routers", precio: 199.00, imagen: "https://via.placeholder.com/600x400?text=Router+Ubiquiti", descripcion: "Router avanzado de 4 puertos con gran capacidad de procesamiento. Millones de paquetes por segundo." },
@@ -8,44 +9,46 @@ const productosMock = [
 
 document.addEventListener("DOMContentLoaded", () => {
     
-    // 2. ENRUTADOR INTELIGENTE DE LA SPA
+    // Controlador principal de navegación (SPA Router)
     const enrutador = () => {
         const hash = window.location.hash || "#home";
         
-        // Ocultamos todas las secciones primero
+        // Reinicio del estado de las vistas
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
 
-        // --- NUEVA LÓGICA PARA DETALLE DE PRODUCTO DINÁMICO ---
-        // Comprobamos si la URL empieza por "#producto/" (ej: #producto/2)
+        // Gestión de rutas dinámicas (Ej: #producto/id)
         if (hash.startsWith("#producto/")) {
-            // Dividimos el hash por la barra "/" y nos quedamos con la segunda parte (el ID)
             const partes = hash.split("/");
-            const productoId = parseInt(partes[1]); // Convertimos el texto "2" en número 2
+            const productoId = parseInt(partes[1]); 
             
-            // Mostramos la sección de producto y cargamos sus datos
             document.getElementById("producto").style.display = "block";
             renderizarDetalle(productoId);
-            return; // Salimos de la función enrutador para que no ejecute el código de abajo
+            return; 
         }
-        // ------------------------------------------------------
 
-        // Navegación normal para el resto de pestañas fijas (#home, #catalogo, etc.)
+        // Gestión de rutas estáticas
         const seccionActiva = document.querySelector(hash);
         if (seccionActiva) {
             seccionActiva.style.display = "block";
         }
 
+        // Inicialización de componentes por vista
         if (hash === "#catalogo") {
             renderizarCatalogo();
         }
+        
+        if (hash === "#login") {
+            renderizarLogin();
+        }
     };
 
+    // Listeners de navegación
     window.addEventListener("hashchange", enrutador);
     enrutador();
 });
 
-// 3. FUNCIÓN PARA PINTAR EL CATÁLOGO
+// Renderiza la vista de catálogo iterando sobre el origen de datos
 function renderizarCatalogo() {
     const contenedorCatalogo = document.getElementById("catalogo");
     
@@ -84,7 +87,7 @@ function renderizarCatalogo() {
     });
 }
 
-// 4. FUNCIÓN PARA PINTAR EL DETALLE DEL PRODUCTO
+// Renderiza la vista de detalle de un producto y su integración con RRSS
 function renderizarDetalle(id) {
     const prod = productosMock.find(p => p.id === id);
     const contenedorProducto = document.getElementById("producto");
@@ -94,6 +97,7 @@ function renderizarDetalle(id) {
         return;
     }
 
+    // Preparación de Web Intents para APIs sociales (Twitter/X)
     const textoTweet = encodeURIComponent(`¡Mira este increíble ${prod.nombre} por solo ${prod.precio.toFixed(2)}€ en Telecom! 🚀`);
     const urlActual = encodeURIComponent(window.location.href);
     const enlaceTwitter = `https://twitter.com/intent/tweet?text=${textoTweet}&url=${urlActual}`;
@@ -115,7 +119,7 @@ function renderizarDetalle(id) {
                     <p class="text-muted mb-4">${prod.descripcion}</p>
                     
                     <div class="d-grid gap-2 mb-5">
-                        <button class="btn btn-success btn-lg" onclick="alert('Añadiendo al carrito (Simulado)')">
+                        <button class="btn btn-success btn-lg" onclick="alert('Funcionalidad de carrito pendiente de implementación')">
                             <i class="bi bi-cart-plus"></i> Añadir al Carrito
                         </button>
                     </div>
@@ -133,6 +137,85 @@ function renderizarDetalle(id) {
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+    `;
+}
+
+// Renderiza los formularios de autenticación (Login/Registro) con validación Frontend
+function renderizarLogin() {
+    const contenedorLogin = document.getElementById("login");
+    
+    contenedorLogin.innerHTML = `
+        <div class="container py-5">
+            <h2 class="text-center mb-5 fw-bold">Área Personal</h2>
+            <div class="row justify-content-center g-4">
+                
+                <div class="col-md-5">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body p-4">
+                            <h4 class="card-title mb-4">Ya tengo cuenta</h4>
+                            <form onsubmit="event.preventDefault(); alert('Login válido. Pendiente de conexión con Backend');">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Correo electrónico</label>
+                                    <input type="email" class="form-control" placeholder="ejemplo@correo.com" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small">Contraseña</label>
+                                    <input type="password" class="form-control" placeholder="••••••••" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 mb-4">Entrar</button>
+                            </form>
+                            
+                            <div class="d-flex align-items-center mb-4">
+                                <hr class="flex-grow-1">
+                                <span class="mx-2 text-muted small">O iniciar sesión con</span>
+                                <hr class="flex-grow-1">
+                            </div>
+                            
+                            <div class="d-grid gap-3">
+                                <button class="btn btn-outline-danger d-flex align-items-center justify-content-center" type="button" onclick="alert('Integración Google OAuth pendiente')">
+                                    <i class="bi bi-google me-2 fs-5"></i> Continuar con Google
+                                </button>
+                                <button class="btn btn-outline-primary d-flex align-items-center justify-content-center" type="button" onclick="alert('Integración Facebook OAuth pendiente')">
+                                    <i class="bi bi-facebook me-2 fs-5"></i> Continuar con Facebook
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="card shadow-sm h-100 bg-light border-0">
+                        <div class="card-body p-4">
+                            <h4 class="card-title mb-4">Crear una cuenta nueva</h4>
+                            <p class="text-muted small mb-4">Regístrate para poder gestionar el estado de tus pedidos de componentes de red y revisar tu histórico.</p>
+                            
+                            <form onsubmit="event.preventDefault(); alert('Registro válido en Frontend. Pasando datos al Backend...');">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Nombre completo</label>
+                                    <input type="text" class="form-control" placeholder="Nombre completo" minlength="3" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Correo electrónico</label>
+                                    <input type="email" class="form-control" placeholder="ejemplo@correo.com" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small">Contraseña</label>
+                                    <input type="password" class="form-control" placeholder="Crea una contraseña segura" 
+                                           pattern="(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+                                           title="Debe contener al menos 8 caracteres, un número, una mayúscula y una minúscula" 
+                                           required>
+                                    <div class="form-text small text-secondary mt-2">
+                                        <i class="bi bi-info-circle"></i> Mínimo 8 caracteres, incluyendo una mayúscula y un número.
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Registrarse</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     `;
