@@ -80,13 +80,13 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
     return `
         <div class="card h-100 shadow-sm border-0 bg-light" ${anchoEstilo}>
             ${etiquetaOferta}
-            <img src="${prod.imagen}" class="card-img-top p-2 rounded" alt="${prod.nombre}">
+            <img src="${prod.imagen}" class="card-img-top p-2 rounded img-tarjeta-producto" alt="${prod.nombre}">
             <div class="card-body d-flex flex-column">
                 <div class="mb-2">
                     <span class="badge bg-secondary">${prod.marca}</span>
                     <span class="badge bg-info text-dark">${prod.categoria}</span>
                 </div>
-                <h5 class="card-title fs-6 fw-bold">${prod.nombre}</h5>
+                <h5 class="card-title fs-6 fw-bold titulo-producto">${prod.nombre}</h5>
                 <p class="card-text text-muted small mb-3 flex-grow-1">${prod.descripcion.substring(0, 60)}...</p>
                 <div class="d-flex justify-content-between align-items-center mt-auto">
                     <div>${uiPrecio}</div>

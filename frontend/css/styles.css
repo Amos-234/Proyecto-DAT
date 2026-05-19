@@ -23,10 +23,11 @@
     scrollbar-width: none;  /* Firefox */
 }
 
-/* Tarjeta individual dentro del carrusel */
+/* Tarjeta individual dentro del carrusel de la Home */
 .carousel-item-card {
-    flex: 0 0 auto; /* Evita que la tarjeta se encoja */
-    width: 260px;   /* Ancho fijo para las tarjetas del carrusel */
+    flex: 0 0 auto; 
+    width: 280px; /* Alineado con los 280px que pide tu JS */
+    display: flex;
 }
 
 /* Efecto hover para los resultados de búsqueda */
@@ -55,4 +56,21 @@
 .footer-icon-link:hover {
     color: #0d6efd !important; /* Cambia al azul primario de Bootstrap en hover */
     transform: translateY(-3px); /* Pequeño salto hacia arriba */
+}
+
+/* Fuerza a que todas las imágenes compartan la misma altura exacta */
+.img-tarjeta-producto {
+    width: 100%;           /* Ocupa todo el ancho disponible de la tarjeta */
+    height: 160px;         /* Altura fija ideal para carrusel y catálogo */
+    object-fit: contain;   /* Mantiene la proporción sin deformar el hardware */
+    background-color: #ffffff; 
+}
+
+/* Estandarizar la altura de los títulos a 2 líneas */
+.titulo-producto {
+    min-height: 48px; /* Fuerza el espacio vertical de 2 líneas (ajusta si es necesario) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Si el texto supera las 2 líneas, pone puntos suspensivos */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
