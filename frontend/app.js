@@ -1,4 +1,4 @@
-// 1. DATOS SIMULADOS (Mock Data)
+// Mock de datos para desarrollo del Frontend. 
 const productosMock = [
     { id: 1, nombre: "Switch Cisco Catalyst 2960", marca: "Cisco", categoria: "Switches", precio: 250.00, imagen: "https://via.placeholder.com/600x400?text=Switch+Cisco", descripcion: "Switch de 24 puertos Gigabit, ideal para pequeñas y medianas empresas. Alta fiabilidad y rendimiento." },
     { id: 2, nombre: "Router Ubiquiti EdgeRouter 4", marca: "Ubiquiti", categoria: "Routers", precio: 199.00, imagen: "https://via.placeholder.com/600x400?text=Router+Ubiquiti", descripcion: "Router avanzado de 4 puertos con gran capacidad de procesamiento. Millones de paquetes por segundo." },
@@ -6,31 +6,27 @@ const productosMock = [
     { id: 4, nombre: "Access Point Aruba 515", marca: "Aruba", categoria: "Inalámbrico", precio: 320.00, imagen: "https://via.placeholder.com/600x400?text=Aruba+AP", descripcion: "Punto de acceso WiFi 6 de alto rendimiento para entornos de alta densidad de usuarios." }
 ];
 
+// Estado global del carrito
+let carrito = [];
+
 document.addEventListener("DOMContentLoaded", () => {
     
-    // 2. ENRUTADOR INTELIGENTE DE LA SPA
+    // Controlador principal de navegación (SPA Router)
     const enrutador = () => {
         const hash = window.location.hash || "#home";
         
-        // Ocultamos todas las secciones primero
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
 
-        // --- NUEVA LÓGICA PARA DETALLE DE PRODUCTO DINÁMICO ---
-        // Comprobamos si la URL empieza por "#producto/" (ej: #producto/2)
         if (hash.startsWith("#producto/")) {
-            // Dividimos el hash por la barra "/" y nos quedamos con la segunda parte (el ID)
             const partes = hash.split("/");
-            const productoId = parseInt(partes[1]); // Convertimos el texto "2" en número 2
+            const productoId = parseInt(partes[1]); 
             
-            // Mostramos la sección de producto y cargamos sus datos
             document.getElementById("producto").style.display = "block";
             renderizarDetalle(productoId);
-            return; // Salimos de la función enrutador para que no ejecute el código de abajo
+            return; 
         }
-        // ------------------------------------------------------
 
-        // Navegación normal para el resto de pestañas fijas (#home, #catalogo, etc.)
         const seccionActiva = document.querySelector(hash);
         if (seccionActiva) {
             seccionActiva.style.display = "block";
@@ -39,13 +35,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hash === "#catalogo") {
             renderizarCatalogo();
         }
+        
+        if (hash === "#login") {
+            renderizarLogin();
+        }
+
+        if (hash === "#carrito") {
+            renderizarCarrito();
+        }
     };
 
     window.addEventListener("hashchange", enrutador);
     enrutador();
 });
 
-// 3. FUNCIÓN PARA PINTAR EL CATÁLOGO
+// Renderiza la vista de catálogo
 function renderizarCatalogo() {
     const contenedorCatalogo = document.getElementById("catalogo");
     
@@ -73,9 +77,14 @@ function renderizarCatalogo() {
                     <p class="card-text text-muted small mb-3 flex-grow-1">${prod.descripcion.substring(0, 60)}...</p>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
                         <span class="fs-5 fw-bold text-primary">${prod.precio.toFixed(2)} €</span>
-                        <a href="#producto/${prod.id}" class="btn btn-sm btn-primary">
-                            Ver detalles
-                        </a>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                            <a href="#producto/${prod.id}" class="btn btn-sm btn-primary">
+                                Detalles
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -84,7 +93,7 @@ function renderizarCatalogo() {
     });
 }
 
-// 4. FUNCIÓN PARA PINTAR EL DETALLE DEL PRODUCTO
+// Renderiza la vista de detalle
 function renderizarDetalle(id) {
     const prod = productosMock.find(p => p.id === id);
     const contenedorProducto = document.getElementById("producto");
@@ -115,7 +124,7 @@ function renderizarDetalle(id) {
                     <p class="text-muted mb-4">${prod.descripcion}</p>
                     
                     <div class="d-grid gap-2 mb-5">
-                        <button class="btn btn-success btn-lg" onclick="alert('Añadiendo al carrito (Simulado)')">
+                        <button class="btn btn-success btn-lg" onclick="agregarAlCarrito(${prod.id})">
                             <i class="bi bi-cart-plus"></i> Añadir al Carrito
                         </button>
                     </div>
@@ -136,4 +145,234 @@ function renderizarDetalle(id) {
             </div>
         </div>
     `;
+}
+
+// Renderiza los formularios de autenticación
+function renderizarLogin() {
+    const contenedorLogin = document.getElementById("login");
+    
+    contenedorLogin.innerHTML = `
+        <div class="container py-5">
+            <h2 class="text-center mb-5 fw-bold">Área Personal</h2>
+            <div class="row justify-content-center g-4">
+                
+                <div class="col-md-5">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body p-4">
+                            <h4 class="card-title mb-4">Ya tengo cuenta</h4>
+                            <form onsubmit="event.preventDefault(); alert('Login válido. Pendiente de conexión con Backend para generar la sesión.');">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Correo electrónico</label>
+                                    <input type="email" class="form-control" placeholder="ejemplo@correo.com" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small">Contraseña</label>
+                                    <input type="password" class="form-control" placeholder="••••••••" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 mb-4">Entrar</button>
+                            </form>
+                            
+                            <div class="d-flex align-items-center mb-4">
+                                <hr class="flex-grow-1">
+                                <span class="mx-2 text-muted small">O iniciar sesión con</span>
+                                <hr class="flex-grow-1">
+                            </div>
+                            
+                            <div class="d-grid gap-3">
+                                <button class="btn btn-outline-danger d-flex align-items-center justify-content-center" type="button">
+                                    <i class="bi bi-google me-2 fs-5"></i> Continuar con Google
+                                </button>
+                                <button class="btn btn-outline-primary d-flex align-items-center justify-content-center" type="button">
+                                    <i class="bi bi-facebook me-2 fs-5"></i> Continuar con Facebook
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="card shadow-sm h-100 bg-light border-0">
+                        <div class="card-body p-4">
+                            <h4 class="card-title mb-4">Crear una cuenta nueva</h4>
+                            <p class="text-muted small mb-4">Regístrate para poder gestionar el estado de tus pedidos y revisar tu histórico.</p>
+                            
+                            <form onsubmit="event.preventDefault(); alert('Registro válido en Frontend. Pasando datos al Backend...');">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Nombre completo</label>
+                                    <input type="text" class="form-control" placeholder="Nombre completo" minlength="3" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Correo electrónico</label>
+                                    <input type="email" class="form-control" placeholder="ejemplo@correo.com" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small">Contraseña</label>
+                                    <input type="password" class="form-control" placeholder="Crea una contraseña segura" 
+                                           pattern="(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+                                           title="Debe contener al menos 8 caracteres, un número, una mayúscula y una minúscula" 
+                                           required>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Registrarse</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    `;
+}
+
+// Gestión del estado del carrito
+function agregarAlCarrito(id) {
+    const producto = productosMock.find(p => p.id === id);
+    if (producto) {
+        const itemExistente = carrito.find(item => item.id === id);
+        if (itemExistente) {
+            itemExistente.cantidad++;
+        } else {
+            carrito.push({ ...producto, cantidad: 1 });
+        }
+        alert(`Se ha añadido "${producto.nombre}" al carrito.`);
+    }
+}
+
+// Modificación de cantidades dinámicas
+function cambiarCantidad(id, nuevaCantidad) {
+    const cantidad = parseInt(nuevaCantidad);
+    if (isNaN(cantidad) || cantidad <= 0) {
+        eliminarDelCarrito(id);
+        return;
+    }
+    const item = carrito.find(p => p.id === id);
+    if (item) {
+        item.cantidad = cantidad;
+        renderizarCarrito(); 
+    }
+}
+
+function eliminarDelCarrito(id) {
+    carrito = carrito.filter(item => item.id !== id);
+    renderizarCarrito(); 
+}
+
+// Renderiza la interfaz dinámica del carrito
+function renderizarCarrito() {
+    const contenedorCarrito = document.getElementById("carrito");
+
+    if (carrito.length === 0) {
+        contenedorCarrito.innerHTML = `
+            <div class="container py-5 text-center">
+                <i class="bi bi-cart-x text-muted" style="font-size: 4rem;"></i>
+                <h2 class="mt-3 mb-4">Tu carrito está vacío</h2>
+                <a href="#catalogo" class="btn btn-primary">Ir al Catálogo</a>
+            </div>
+        `;
+        return;
+    }
+
+    const subtotal = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+    const impuestos = subtotal * 0.21;
+    const total = subtotal + impuestos;
+
+    let filasHTML = "";
+    carrito.forEach(item => {
+        filasHTML += `
+            <tr>
+                <td class="ps-4 py-3">
+                    <div class="d-flex align-items-center">
+                        <img src="${item.imagen}" class="rounded me-3" alt="${item.nombre}" style="width: 60px; height: 40px; object-fit: cover;">
+                        <div>
+                            <h6 class="mb-0">${item.nombre}</h6>
+                            <small class="text-muted">${item.marca}</small>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center" style="width: 150px;">
+                    <div class="input-group input-group-sm mx-auto" style="width: 110px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="cambiarCantidad(${item.id}, ${item.cantidad - 1})">-</button>
+                        <input type="number" class="form-control text-center bg-white text-dark" value="${item.cantidad}" onchange="cambiarCantidad(${item.id}, this.value)" min="1">
+                        <button class="btn btn-outline-secondary" type="button" onclick="cambiarCantidad(${item.id}, ${item.cantidad + 1})">+</button>
+                    </div>
+                </td>
+                <td class="text-end fw-semibold">${(item.precio * item.cantidad).toFixed(2)} €</td>
+                <td class="text-end pe-4">
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarDelCarrito(${item.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    contenedorCarrito.innerHTML = `
+        <div class="container py-5">
+            <h2 class="mb-4 fw-bold">Tu Carrito de la Compra</h2>
+            
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col" class="ps-4">Componente</th>
+                                            <th scope="col" class="text-center">Cantidad</th>
+                                            <th scope="col" class="text-end">Precio</th>
+                                            <th scope="col" class="text-end pe-4">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${filasHTML}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow-sm border-0 bg-light">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-4">Resumen del pedido</h5>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span>${subtotal.toFixed(2)} €</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Envío estándar</span>
+                                <span class="text-success">Gratis</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Impuestos (IVA 21%)</span>
+                                <span>${impuestos.toFixed(2)} €</span>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="fs-5 fw-bold">Total</span>
+                                <span class="fs-5 fw-bold text-primary">${total.toFixed(2)} €</span>
+                            </div>
+                            
+                            <button class="btn btn-success w-100 btn-lg mb-3" onclick="procesarPago()">
+                                <i class="bi bi-credit-card me-2"></i> Realizar Pago
+                            </button>
+                            <a href="#catalogo" class="btn btn-outline-secondary w-100">
+                                Seguir comprando
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Controlador de la acción de pago
+function procesarPago() {
+    alert("Para procesar el pago y guardar el pedido en tu historial, el servidor debe validar tu sesión de usuario. Pendiente de integración con Backend.");
+    window.location.hash = "#login";
 }
