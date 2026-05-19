@@ -4,3 +4,27 @@
   height: auto; /* Mantiene la proporción */
   display: block;
 }
+
+/* Contenedor del carrusel */
+.carousel-track {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto; /* Permite el scroll horizontal */
+    scroll-behavior: smooth; /* Hace que el movimiento de las flechas sea suave */
+    padding-bottom: 1rem;
+}
+
+/* Ocultar la antiestética barra de scroll en distintos navegadores */
+.carousel-track::-webkit-scrollbar {
+    display: none;
+}
+.carousel-track {
+    -ms-overflow-style: none;  /* IE y Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Tarjeta individual dentro del carrusel */
+.carousel-item-card {
+    flex: 0 0 auto; /* Evita que la tarjeta se encoja */
+    width: 260px;   /* Ancho fijo para las tarjetas del carrusel */
+}
