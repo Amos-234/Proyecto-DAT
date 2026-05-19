@@ -59,20 +59,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // Controlador principal de navegación (SPA Router)
     const enrutador = () => {
         const hash = window.location.hash || "#home";
-
-        if (hash === "#home" || hash === "") {
-            document.getElementById("home").style.display = "block";
-            renderizarHome();
-        }
         
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
 
+        // CAPTURAMOS EL FOOTER
+        const footer = document.getElementById("footer-principal");
+
+        // Lógica para la vista de detalles de producto
         if (hash.startsWith("#producto/")) {
+            document.getElementById("producto").style.display = "block";
+            if (footer) footer.style.display = "none"; // Ocultar en detalles
             const partes = hash.split("/");
             const productoId = parseInt(partes[1]); 
-            
-            document.getElementById("producto").style.display = "block";
             renderizarDetalle(productoId);
             return; 
         }
@@ -82,11 +81,18 @@ document.addEventListener("DOMContentLoaded", () => {
             seccionActiva.style.display = "block";
         }
 
-        // Enrutamiento a las funciones renderizadoras
-        if (hash === "#home") renderizarHome();
-        if (hash === "#catalogo") renderizarCatalogo();
-        if (hash === "#login") renderizarLogin();
-        if (hash === "#carrito") renderizarCarrito();
+        // CONTROL DE VISIBILIDAD DEL FOOTER
+        if (hash === "#home" || hash === "") {
+            if (footer) footer.style.display = "block"; // Mostrar solo en el Home
+            renderizarHome();
+        } else {
+            if (footer) footer.style.display = "none";  // Ocultar en cualquier otra sección
+        }
+
+        // Resto de tus condiciones de renderizado
+        if (hash === "#catalogo") { renderizarCatalogo(); }
+        if (hash === "#login") { renderizarLogin(); }
+        if (hash === "#carrito") { renderizarCarrito(); }
     };
 
     window.addEventListener("hashchange", enrutador);

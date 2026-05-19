@@ -36,3 +36,23 @@
 .result-hover:hover {
     background-color: #f8f9fa; /* Gris muy clarito de Bootstrap */
 }
+
+/* Estilos interactivos para el footer profesional */
+.footer-link {
+    transition: color 0.2s ease-in-out, padding-left 0.2s ease-in-out;
+}
+
+.footer-link:hover {
+    color: #ffffff !important; /* Pasa de gris tenue a blanco brillante */
+    padding-left: 4px; /* Hace un sutil efecto de desplazamiento hacia la derecha */
+}
+
+.footer-icon-link {
+    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    display: inline-block;
+}
+
+.footer-icon-link:hover {
+    color: #0d6efd !important; /* Cambia al azul primario de Bootstrap en hover */
+    transform: translateY(-3px); /* Pequeño salto hacia arriba */
+}
