@@ -1,6 +1,5 @@
 // Mock de datos para desarrollo del Frontend (50 productos)
 const productosMock = [
-    // --- SWITCHES ---
     { id: 1, nombre: "Switch Cisco Catalyst 2960-X 24 GigE", marca: "Cisco", categoria: "Switches", precio: 390.00, precioOriginal: 450.00, imagen: "https://via.placeholder.com/600x400?text=Cisco+Catalyst+2960", descripcion: "Switch gestionable de 24 puertos Gigabit con 4 enlaces ascendentes SFP. Ideal para acceso empresarial." },
     { id: 2, nombre: "Ubiquiti UniFi Switch 24 PoE", marca: "Ubiquiti", categoria: "Switches", precio: 379.99, imagen: "https://via.placeholder.com/600x400?text=UniFi+Switch+24", descripcion: "Switch PoE+ de 24 puertos con refrigeración silenciosa y gestión centralizada UniFi." },
     { id: 3, nombre: "MikroTik Cloud Router Switch 326", marca: "MikroTik", categoria: "Switches", precio: 150.00, precioOriginal: 185.50, imagen: "https://via.placeholder.com/600x400?text=MikroTik+CRS326", descripcion: "Switch de 24 puertos Gigabit Ethernet y 2 puertos SFP+ para conectividad 10G." },
@@ -9,8 +8,6 @@ const productosMock = [
     { id: 6, nombre: "Netgear ProSAFE 8-Port Gigabit", marca: "Netgear", categoria: "Switches", precio: 45.00, imagen: "https://via.placeholder.com/600x400?text=Netgear+ProSAFE+8", descripcion: "Switch no gestionable Plug-and-Play de carcasa metálica." },
     { id: 7, nombre: "Cisco Nexus 93180YC-EX", marca: "Cisco", categoria: "Switches", precio: 4500.00, imagen: "https://via.placeholder.com/600x400?text=Cisco+Nexus", descripcion: "Switch de centro de datos de ultra baja latencia con 48 puertos 10/25G." },
     { id: 8, nombre: "Ubiquiti EdgeSwitch 10XP", marca: "Ubiquiti", categoria: "Switches", precio: 110.00, precioOriginal: 135.00, imagen: "https://via.placeholder.com/600x400?text=EdgeSwitch+10XP", descripcion: "Switch PoE de 8 puertos Gigabit diseñado para implementaciones WISP." },
-
-    // --- ROUTERS ---
     { id: 9, nombre: "Router Ubiquiti EdgeRouter 4", marca: "Ubiquiti", categoria: "Routers", precio: 199.00, imagen: "https://via.placeholder.com/600x400?text=EdgeRouter+4", descripcion: "Router avanzado con capacidad de enrutamiento de 3.4 millones de paquetes por segundo." },
     { id: 10, nombre: "MikroTik hEX RB750Gr3", marca: "MikroTik", categoria: "Routers", precio: 45.00, precioOriginal: 59.90, imagen: "https://via.placeholder.com/600x400?text=MikroTik+hEX", descripcion: "Pequeño router de 5 puertos Gigabit con cifrado IPsec por hardware." },
     { id: 11, nombre: "Cisco ISR 4321", marca: "Cisco", categoria: "Routers", precio: 850.00, imagen: "https://via.placeholder.com/600x400?text=Cisco+ISR+4321", descripcion: "Router de servicios integrados para sucursales corporativas." },
@@ -18,16 +15,12 @@ const productosMock = [
     { id: 13, nombre: "Ubiquiti UniFi Dream Machine Pro", marca: "Ubiquiti", categoria: "Routers", precio: 410.00, imagen: "https://via.placeholder.com/600x400?text=UDM+Pro", descripcion: "Gateway de seguridad empresarial todo en uno y controlador de red." },
     { id: 14, nombre: "MikroTik CCR1009-7G-1C", marca: "MikroTik", categoria: "Routers", precio: 380.00, precioOriginal: 450.00, imagen: "https://via.placeholder.com/600x400?text=MikroTik+CCR1009", descripcion: "Cloud Core Router de grado industrial con CPU de 9 núcleos." },
     { id: 15, nombre: "Cisco Meraki MX64", marca: "Cisco", categoria: "Routers", precio: 520.00, imagen: "https://via.placeholder.com/600x400?text=Meraki+MX64", descripcion: "Appliance de seguridad y SD-WAN gestionado en la nube al 100%." },
-
-    // --- FIREWALLS ---
     { id: 16, nombre: "Fortinet FortiGate 40F", marca: "Fortinet", categoria: "Firewalls", precio: 480.00, imagen: "https://via.placeholder.com/600x400?text=FortiGate+40F", descripcion: "Appliance NGFW (Next-Generation Firewall) ideal para oficinas remotas." },
     { id: 17, nombre: "Palo Alto Networks PA-410", marca: "Palo Alto", categoria: "Firewalls", precio: 850.00, precioOriginal: 950.00, imagen: "https://via.placeholder.com/600x400?text=Palo+Alto+PA-410", descripcion: "Firewall con machine learning integrado para prevenir amenazas de día cero." },
     { id: 18, nombre: "Sophos XGS 116", marca: "Sophos", categoria: "Firewalls", precio: 580.00, precioOriginal: 620.00, imagen: "https://via.placeholder.com/600x400?text=Sophos+XGS+116", descripcion: "Protección perimetral avanzada con arquitectura Xstream." },
     { id: 19, nombre: "Cisco Firepower 1010", marca: "Cisco", categoria: "Firewalls", precio: 780.00, imagen: "https://via.placeholder.com/600x400?text=Firepower+1010", descripcion: "Defensa contra amenazas superior orientada a Pymes." },
     { id: 20, nombre: "Fortinet FortiGate 60F", marca: "Fortinet", categoria: "Firewalls", precio: 750.00, imagen: "https://via.placeholder.com/600x400?text=FortiGate+60F", descripcion: "Firewall de alto rendimiento con SD-WAN segura." },
     { id: 21, nombre: "WatchGuard Firebox T20", marca: "Genérico", categoria: "Firewalls", precio: 290.00, precioOriginal: 340.00, imagen: "https://via.placeholder.com/600x400?text=WatchGuard+T20", descripcion: "Seguridad de red de nivel empresarial para pequeñas oficinas." },
-
-    // --- ACCESS POINTS ---
     { id: 22, nombre: "Ubiquiti UniFi AP AC Pro", marca: "Ubiquiti", categoria: "Access Points", precio: 145.00, imagen: "https://via.placeholder.com/600x400?text=UniFi+AC+Pro", descripcion: "Punto de acceso dual-band 802.11ac para interiores y exteriores." },
     { id: 23, nombre: "Aruba Instant On AP22", marca: "Aruba", categoria: "Access Points", precio: 165.00, imagen: "https://via.placeholder.com/600x400?text=Aruba+AP22", descripcion: "Access Point Wi-Fi 6 (802.11ax) de alto rendimiento." },
     { id: 24, nombre: "Cisco Meraki MR46", marca: "Cisco", categoria: "Access Points", precio: 790.00, precioOriginal: 890.00, imagen: "https://via.placeholder.com/600x400?text=Meraki+MR46", descripcion: "AP Wi-Fi 6 gestionado en la nube, optimizado para alta densidad." },
@@ -36,32 +29,24 @@ const productosMock = [
     { id: 27, nombre: "MikroTik cAP ac", marca: "MikroTik", categoria: "Access Points", precio: 75.00, imagen: "https://via.placeholder.com/600x400?text=MikroTik+cAP", descripcion: "AP de doble banda que pasa desapercibido en el techo." },
     { id: 28, nombre: "Aruba AP-515", marca: "Aruba", categoria: "Access Points", precio: 450.00, imagen: "https://via.placeholder.com/600x400?text=Aruba+AP-515", descripcion: "AP de campus de alto rendimiento para entornos móviles e IoT." },
     { id: 29, nombre: "Netgear WAX610", marca: "Netgear", categoria: "Access Points", precio: 125.00, precioOriginal: 155.00, imagen: "https://via.placeholder.com/600x400?text=Netgear+WAX610", descripcion: "Punto de acceso Insight Managed WiFi 6 AX1800." },
-
-    // --- ANTENAS ---
     { id: 30, nombre: "Ubiquiti LiteBeam 5AC Gen2", marca: "Ubiquiti", categoria: "Antenas", precio: 65.00, imagen: "https://via.placeholder.com/600x400?text=LiteBeam+5AC", descripcion: "CPE airMAX ac ultra ligero de largo alcance y alta directividad." },
     { id: 31, nombre: "MikroTik SXTsq Lite5", marca: "MikroTik", categoria: "Antenas", precio: 39.00, precioOriginal: 49.00, imagen: "https://via.placeholder.com/600x400?text=SXTsq+Lite5", descripcion: "Dispositivo inalámbrico compacto para enlaces punto a punto o como CPE." },
     { id: 32, nombre: "Ubiquiti NanoStation Loco M5", marca: "Ubiquiti", categoria: "Antenas", precio: 55.00, imagen: "https://via.placeholder.com/600x400?text=NanoStation+M5", descripcion: "CPE versátil y de bajo coste para redes ISP inalámbricas." },
     { id: 33, nombre: "Ubiquiti airFiber 5XHD", marca: "Ubiquiti", categoria: "Antenas", precio: 420.00, imagen: "https://via.placeholder.com/600x400?text=airFiber+5XHD", descripcion: "Radio de backhaul de 5 GHz diseñada específicamente para WISP." },
     { id: 34, nombre: "MikroTik LDF 5", marca: "MikroTik", categoria: "Antenas", precio: 45.00, imagen: "https://via.placeholder.com/600x400?text=MikroTik+LDF+5", descripcion: "Sistema inalámbrico con antena parabólica para enlaces extremadamente largos." },
     { id: 35, nombre: "TP-Link CPE510", marca: "TP-Link", categoria: "Antenas", precio: 40.00, precioOriginal: 48.00, imagen: "https://via.placeholder.com/600x400?text=TP-Link+CPE510", descripcion: "CPE Inalámbrico de Exterior a 5GHz 300Mbps 13dBi." },
-
-    // --- CABLEADO ---
     { id: 36, nombre: "Bobina Cable UTP Cat6 305m", marca: "Genérico", categoria: "Cableado", precio: 75.00, precioOriginal: 95.00, imagen: "https://via.placeholder.com/600x400?text=Bobina+Cat6", descripcion: "Cable de par trenzado sin apantallar de cobre 100% puro." },
     { id: 37, nombre: "Bobina Cable FTP Cat6a 305m", marca: "Genérico", categoria: "Cableado", precio: 145.00, imagen: "https://via.placeholder.com/600x400?text=Bobina+Cat6a", descripcion: "Cable apantallado para redes de 10 Gigabit, alta resistencia a interferencias." },
     { id: 38, nombre: "Latiguillo Fibra Óptica LC-LC 5m", marca: "Genérico", categoria: "Cableado", precio: 15.50, imagen: "https://via.placeholder.com/600x400?text=Fibra+OM3", descripcion: "Latiguillo de fibra multimodo dúplex 50/125 OM3." },
     { id: 39, nombre: "Latiguillo Fibra SC-APC 10m", marca: "Genérico", categoria: "Cableado", precio: 9.00, precioOriginal: 12.00, imagen: "https://via.placeholder.com/600x400?text=Fibra+SC-APC", descripcion: "Latiguillo monomodo ideal para instalaciones de fibra óptica hasta el hogar (FTTH)." },
     { id: 40, nombre: "Cable DAC SFP+ 10G 1m", marca: "Cisco", categoria: "Cableado", precio: 35.00, imagen: "https://via.placeholder.com/600x400?text=Cable+DAC", descripcion: "Cable Twinax de conexión directa (DAC) para enlaces de cortísima distancia." },
     { id: 41, nombre: "Pack 10 Latiguillos UTP Cat6 1m", marca: "Genérico", categoria: "Cableado", precio: 18.00, imagen: "https://via.placeholder.com/600x400?text=Pack+Latiguillos", descripcion: "Latiguillos de red RJ45 en varios colores para parcheo de armarios." },
-
-    // --- RACKS ---
     { id: 42, nombre: "Armario Rack Mural 19\" 9U", marca: "Genérico", categoria: "Racks", precio: 85.00, imagen: "https://via.placeholder.com/600x400?text=Rack+Mural+9U", descripcion: "Armario de pared perfecto para pequeñas instalaciones de red o CCTV." },
     { id: 43, nombre: "Armario Rack Suelo 19\" 42U", marca: "Genérico", categoria: "Racks", precio: 390.00, precioOriginal: 450.00, imagen: "https://via.placeholder.com/600x400?text=Rack+42U", descripcion: "Armario de pie para servidores y equipamiento de red pesado, con ventilación." },
     { id: 44, nombre: "Bandeja Fija Rack 19\" 1U", marca: "Genérico", categoria: "Racks", precio: 22.00, imagen: "https://via.placeholder.com/600x400?text=Bandeja+Rack", descripcion: "Bandeja perforada para soportar routers no enrackables o monitores." },
     { id: 45, nombre: "Regleta PDU 8 Tomas Rack 19\"", marca: "Genérico", categoria: "Racks", precio: 35.00, imagen: "https://via.placeholder.com/600x400?text=Regleta+PDU", descripcion: "Unidad de distribución de energía con interruptor para armarios." },
     { id: 46, nombre: "Panel de Parcheo 24 Puertos Cat6", marca: "Genérico", categoria: "Racks", precio: 30.00, precioOriginal: 45.00, imagen: "https://via.placeholder.com/600x400?text=Patch+Panel", descripcion: "Patch panel vacío para inserción de módulos Keystone (Jack)." },
     { id: 47, nombre: "GuíaCables 1U con Tapa", marca: "Genérico", categoria: "Racks", precio: 15.00, imagen: "https://via.placeholder.com/600x400?text=GuiaCables", descripcion: "Organizador de cables frontal para un armario rack más ordenado." },
-
-    // --- ACCESORIOS ---
     { id: 48, nombre: "Módulo SFP 1G Base-T Cobre", marca: "Ubiquiti", categoria: "Accesorios", precio: 25.00, imagen: "https://via.placeholder.com/600x400?text=SFP+Cobre", descripcion: "Transceptor SFP a RJ45 para distancias de hasta 100m." },
     { id: 49, nombre: "Módulo SFP+ 10G SR Multimodo", marca: "Cisco", categoria: "Accesorios", precio: 75.00, precioOriginal: 95.00, imagen: "https://via.placeholder.com/600x400?text=SFP%2B+10G", descripcion: "Transceptor óptico para cortas distancias (hasta 300m sobre fibra OM3)." },
     { id: 50, nombre: "Inyector PoE+ 30W Gigabit", marca: "TP-Link", categoria: "Accesorios", precio: 22.00, imagen: "https://via.placeholder.com/600x400?text=Inyector+PoE", descripcion: "Inyector de energía a través de Ethernet para alimentar APs y cámaras." }
@@ -71,7 +56,6 @@ const productosMock = [
 let carrito = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-    
     // Controlador principal de navegación (SPA Router)
     const enrutador = () => {
         const hash = window.location.hash || "#home";
@@ -80,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("home").style.display = "block";
             renderizarHome();
         }
-        
         
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
@@ -110,12 +93,11 @@ document.addEventListener("DOMContentLoaded", () => {
     enrutador();
 });
 
-// Función centralizada para generar el HTML de una tarjeta (Calcula % de descuento dinámico)
+// Genera la tarjeta y calcula el descuento
 function generarTarjetaProducto(prod, esCarrusel = false) {
     let etiquetaOferta = '';
     let uiPrecio = `<span class="fs-5 fw-bold text-primary">${prod.precio.toFixed(2)} €</span>`;
 
-    // Lógica matemática para calcular el porcentaje de descuento si existe un precio original mayor
     if (prod.precioOriginal && prod.precioOriginal > prod.precio) {
         const porcentajeDescuento = Math.round(((prod.precioOriginal - prod.precio) / prod.precioOriginal) * 100);
         etiquetaOferta = `<span class="badge bg-danger position-absolute top-0 start-0 m-2">-${porcentajeDescuento}% Dto.</span>`;
@@ -149,7 +131,7 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
     `;
 }
 
-// Renderiza la página principal (3 Carruseles)
+// Renderiza los carruseles del Home
 function renderizarHome() {
     const destacados = productosMock.slice(0, 6);
     document.getElementById("trackDestacados").innerHTML = destacados.map(p => generarTarjetaProducto(p, true)).join('');
@@ -161,11 +143,9 @@ function renderizarHome() {
     document.getElementById("trackOfertas").innerHTML = ofertas.map(p => generarTarjetaProducto(p, true)).join('');
 }
 
-// Función para mostrar los resultados en vivo
+// -- LÓGICA DE BÚSQUEDA INTERACTIVA --
 function mostrarSugerencias(texto) {
     const caja = document.getElementById("cajaSugerencias");
-    
-    // Si el input está vacío, ocultamos la caja y salimos
     if (!texto || texto.trim().length === 0) {
         caja.innerHTML = "";
         caja.classList.add("d-none");
@@ -173,21 +153,18 @@ function mostrarSugerencias(texto) {
     }
 
     const termino = texto.toLowerCase().trim();
-    
-    // Filtramos el array buscando coincidencias en nombre o categoría
     const resultados = productosMock.filter(prod => 
         prod.nombre.toLowerCase().includes(termino) || 
-        prod.categoria.toLowerCase().includes(termino)
+        prod.categoria.toLowerCase().includes(termino) ||
+        prod.marca.toLowerCase().includes(termino)
     );
 
-    // Si no hay resultados
     if (resultados.length === 0) {
         caja.innerHTML = `<div class="p-3 text-muted text-center">No se encontraron productos para "${texto}"</div>`;
         caja.classList.remove("d-none");
         return;
     }
 
-    // Si hay resultados, construimos el HTML de cada línea
     const htmlSugerencias = resultados.map(prod => `
         <a href="#producto/${prod.id}" class="text-decoration-none text-dark d-flex align-items-center p-2 border-bottom result-hover" onclick="ocultarSugerencias()">
             <img src="${prod.imagen}" style="width: 50px; height: 50px; object-fit: contain;" class="me-3 rounded bg-light">
@@ -205,19 +182,57 @@ function mostrarSugerencias(texto) {
 
 function ocultarSugerencias() {
     const caja = document.getElementById("cajaSugerencias");
-    caja.classList.add("d-none");
+    if(caja) caja.classList.add("d-none");
 }
 
-// Extra UX: Cerrar las sugerencias si el usuario hace clic fuera del buscador
 document.addEventListener("click", (evento) => {
     const contenedor = document.getElementById("contenedorBusqueda");
-    // Si el clic NO fue dentro del contenedor del buscador, ocultamos la caja
     if (contenedor && !contenedor.contains(evento.target)) {
         ocultarSugerencias();
     }
 });
 
-// Renderiza el Catálogo con Filtros
+// NUEVA FUNCIÓN: Al pulsar Enter en el buscador
+function realizarBusqueda(event) {
+    event.preventDefault(); // Evita que la página se recargue por defecto
+    const input = document.getElementById("inputBusqueda");
+    const texto = input.value.toLowerCase().trim();
+    
+    ocultarSugerencias();
+    window.location.hash = "#catalogo"; // Viajamos al catálogo
+
+    // Un pequeño retardo para asegurar que el DOM del catálogo se ha pintado
+    setTimeout(() => {
+        if(texto !== "") {
+            // Reutilizamos renderizarCatalogo pero forzando un filtrado manual por texto
+            const contenedorCatalogo = document.getElementById("catalogo");
+            const resultados = productosMock.filter(prod => 
+                prod.nombre.toLowerCase().includes(texto) || 
+                prod.categoria.toLowerCase().includes(texto) ||
+                prod.marca.toLowerCase().includes(texto)
+            );
+            
+            contenedorCatalogo.innerHTML = `
+                <div class="container py-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="fw-bold m-0">Resultados para: "${texto}"</h2>
+                        <button class="btn btn-outline-secondary" onclick="document.getElementById('inputBusqueda').value=''; renderizarCatalogo('Todos');">Limpiar Filtro</button>
+                    </div>
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="grid-busqueda"></div>
+                </div>
+            `;
+            
+            const grid = document.getElementById("grid-busqueda");
+            if(resultados.length === 0) {
+                grid.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted fs-5">Vaya, no hemos encontrado nada. Prueba con "Cisco" o "Router".</p></div>`;
+            } else {
+                grid.innerHTML = resultados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('');
+            }
+        }
+    }, 50);
+}
+
+// Renderiza el Catálogo 
 function renderizarCatalogo(filtro = "Todos") {
     const contenedorCatalogo = document.getElementById("catalogo");
     const categoriasIneditas = ["Todos", ...new Set(productosMock.map(p => p.categoria))];
@@ -246,7 +261,7 @@ function renderizarCatalogo(filtro = "Todos") {
     grid.innerHTML = productosFiltrados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('');
 }
 
-// Renderiza la vista de detalles
+// Renderiza el detalle del producto
 function renderizarDetalle(id) {
     const prod = productosMock.find(p => p.id === id);
     const contenedorProducto = document.getElementById("producto");
@@ -379,7 +394,7 @@ function renderizarLogin() {
     `;
 }
 
-// Gestión del estado del carrito
+// Lógica de Carrito
 function agregarAlCarrito(id) {
     const producto = productosMock.find(p => p.id === id);
     if (producto) {
@@ -393,7 +408,6 @@ function agregarAlCarrito(id) {
     }
 }
 
-// Modificación de cantidades dinámicas
 function cambiarCantidad(id, nuevaCantidad) {
     const cantidad = parseInt(nuevaCantidad);
     if (isNaN(cantidad) || cantidad <= 0) {
@@ -412,7 +426,6 @@ function eliminarDelCarrito(id) {
     renderizarCarrito(); 
 }
 
-// Renderiza la interfaz dinámica del carrito
 function renderizarCarrito() {
     const contenedorCarrito = document.getElementById("carrito");
 
@@ -527,7 +540,6 @@ function renderizarCarrito() {
     `;
 }
 
-// Controlador de la acción de pago
 function procesarPago() {
     alert("Para procesar el pago y guardar el pedido en tu historial, el servidor debe validar tu sesión de usuario. Pendiente de integración con Backend.");
     window.location.hash = "#login";
