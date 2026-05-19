@@ -1,44 +1,41 @@
-// Variable global que se llenará con los datos de la Base de Datos (¡Adiós al array gigante!)
-let productos = []; 
+// --- ESTADO GLOBAL ---
+let productos = []; // Se rellenará dinámicamente desde MySQL
 let carrito = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Cargamos los productos desde el Backend antes de pintar nada
+    // Iniciamos la carga asíncrona desde el Backend
     cargarProductosYArrancar();
+    // Pintamos el menú inicial según si hay sesión previa guardada
+    actualizarMenuNavegacion();
 });
 
-// NUEVA FUNCIÓN: Se conecta a tu PHP y descarga el JSON
+// --- 1. CARGA DE DATOS DESDE LA API ---
 async function cargarProductosYArrancar() {
     try {
         const respuesta = await fetch('../backend/get_productos.php');
         if (!respuesta.ok) throw new Error('Error al conectar con la API');
         
-        // Convertimos la respuesta a JSON y la guardamos en nuestra variable global
         productos = await respuesta.json();
-        
-        // Ahora que tenemos los datos reales, iniciamos la web
         iniciarEnrutador();
     } catch (error) {
         console.error("Error al cargar productos:", error);
-        alert("No se pudo conectar con la base de datos local. ¿Está encendido Apache y MySQL en XAMPP?");
+        alert("No se pudo conectar con la base de datos local. Asegúrate de que XAMPP tiene Apache y MySQL encendidos.");
     }
 }
 
+// --- 2. ENRUTADOR DE LA SPA ---
 function iniciarEnrutador() {
-    // Controlador principal de navegación (SPA Router)
     const enrutador = () => {
         const hash = window.location.hash || "#home";
         
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
 
-        // CAPTURAMOS EL FOOTER
         const footer = document.getElementById("footer-principal");
 
-        // Lógica para la vista de detalles de producto
         if (hash.startsWith("#producto/")) {
             document.getElementById("producto").style.display = "block";
-            if (footer) footer.style.display = "none"; // Ocultar en detalles
+            if (footer) footer.style.display = "none"; 
             const partes = hash.split("/");
             const productoId = parseInt(partes[1]); 
             renderizarDetalle(productoId);
@@ -50,25 +47,24 @@ function iniciarEnrutador() {
             seccionActiva.style.display = "block";
         }
 
-        // CONTROL DE VISIBILIDAD DEL FOOTER
         if (hash === "#home" || hash === "") {
-            if (footer) footer.style.display = "block"; // Mostrar solo en el Home
+            if (footer) footer.style.display = "block"; 
             renderizarHome();
         } else {
-            if (footer) footer.style.display = "none";  // Ocultar en cualquier otra sección
+            if (footer) footer.style.display = "none";  
         }
 
-        // Resto de tus condiciones de renderizado
-        if (hash === "#catalogo") { renderizarCatalogo(); }
-        if (hash === "#login") { renderizarLogin(); }
-        if (hash === "#carrito") { renderizarCarrito(); }
+        if (hash === "#catalogo") renderizarCatalogo();
+        if (hash === "#login") renderizarLogin();
+        if (hash === "#carrito") renderizarCarrito();
     };
 
     window.addEventListener("hashchange", enrutador);
     enrutador();
 }
 
-// Genera la tarjeta y calcula el descuento
+// --- 3. COMPONENTES VISUALES Y RENDERIZADO ---
+
 function generarTarjetaProducto(prod, esCarrusel = false) {
     let etiquetaOferta = '';
     let uiPrecio = `<span class="fs-5 fw-bold text-primary">${parseFloat(prod.precio).toFixed(2)} €</span>`;
@@ -106,7 +102,6 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
     `;
 }
 
-// Renderiza los carruseles del Home (AHORA USA 'productos')
 function renderizarHome() {
     const destacados = productos.slice(0, 6);
     document.getElementById("trackDestacados").innerHTML = destacados.map(p => generarTarjetaProducto(p, true)).join('');
@@ -118,7 +113,36 @@ function renderizarHome() {
     document.getElementById("trackOfertas").innerHTML = ofertas.map(p => generarTarjetaProducto(p, true)).join('');
 }
 
-// -- LÓGICA DE BÚSQUEDA INTERACTIVA (AHORA USA 'productos') --
+function renderizarCatalogo(filtro = "Todos") {
+    const contenedorCatalogo = document.getElementById("catalogo");
+    const categoriasIneditas = ["Todos", ...new Set(productos.map(p => p.categoria))];
+
+    let botonesFiltroHTML = categoriasIneditas.map(cat => `
+        <button class="btn ${filtro === cat ? 'btn-primary' : 'btn-outline-primary'} mb-2 me-2" 
+                onclick="renderizarCatalogo('${cat}')">${cat}</button>
+    `).join('');
+
+    contenedorCatalogo.innerHTML = `
+        <div class="container py-5">
+            <h2 class="mb-4 fw-bold">Catálogo de Componentes</h2>
+            <div class="d-flex flex-wrap mb-4 pb-3 border-bottom">${botonesFiltroHTML}</div>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="grid-productos"></div>
+        </div>
+    `;
+
+    const grid = document.getElementById("grid-productos");
+    const productosFiltrados = filtro === "Todos" ? productos : productos.filter(prod => prod.categoria === filtro);
+
+    if (productosFiltrados.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted fs-5">No hay productos en esta categoría.</p></div>`;
+        return;
+    }
+
+    grid.innerHTML = productosFiltrados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('');
+}
+
+// --- 4. LÓGICA DE BÚSQUEDA AVANZADA ---
+
 function mostrarSugerencias(texto) {
     const caja = document.getElementById("cajaSugerencias");
     if (!texto || texto.trim().length === 0) {
@@ -167,7 +191,6 @@ document.addEventListener("click", (evento) => {
     }
 });
 
-// NUEVA FUNCIÓN: Al pulsar Enter en el buscador (AHORA USA 'productos')
 function realizarBusqueda(event) {
     event.preventDefault(); 
     const input = document.getElementById("inputBusqueda");
@@ -197,7 +220,7 @@ function realizarBusqueda(event) {
             
             const grid = document.getElementById("grid-busqueda");
             if(resultados.length === 0) {
-                grid.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted fs-5">Vaya, no hemos encontrado nada. Prueba con "Cisco" o "Router".</p></div>`;
+                grid.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted fs-5">No hemos encontrado resultados. Intenta con otra palabra.</p></div>`;
             } else {
                 grid.innerHTML = resultados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('');
             }
@@ -205,36 +228,7 @@ function realizarBusqueda(event) {
     }, 50);
 }
 
-// Renderiza el Catálogo (AHORA USA 'productos')
-function renderizarCatalogo(filtro = "Todos") {
-    const contenedorCatalogo = document.getElementById("catalogo");
-    const categoriasIneditas = ["Todos", ...new Set(productos.map(p => p.categoria))];
-
-    let botonesFiltroHTML = categoriasIneditas.map(cat => `
-        <button class="btn ${filtro === cat ? 'btn-primary' : 'btn-outline-primary'} mb-2 me-2" 
-                onclick="renderizarCatalogo('${cat}')">${cat}</button>
-    `).join('');
-
-    contenedorCatalogo.innerHTML = `
-        <div class="container py-5">
-            <h2 class="mb-4 fw-bold">Catálogo de Componentes</h2>
-            <div class="d-flex flex-wrap mb-4 pb-3 border-bottom">${botonesFiltroHTML}</div>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="grid-productos"></div>
-        </div>
-    `;
-
-    const grid = document.getElementById("grid-productos");
-    const productosFiltrados = filtro === "Todos" ? productos : productos.filter(prod => prod.categoria === filtro);
-
-    if (productosFiltrados.length === 0) {
-        grid.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted fs-5">No hay productos en esta categoría.</p></div>`;
-        return;
-    }
-
-    grid.innerHTML = productosFiltrados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('');
-}
-
-// Renderiza el detalle del producto (AHORA USA 'productos')
+// --- 5. VISTA DE DETALLE DE PRODUCTO ---
 function renderizarDetalle(id) {
     const prod = productos.find(p => p.id === id);
     const contenedorProducto = document.getElementById("producto");
@@ -291,7 +285,7 @@ function renderizarDetalle(id) {
     `;
 }
 
-// Renderiza los formularios de autenticación
+// --- 6. FORMULARIOS DE AUTENTICACIÓN (LOGIN Y REGISTRO) ---
 function renderizarLogin() {
     const contenedorLogin = document.getElementById("login");
     
@@ -304,14 +298,14 @@ function renderizarLogin() {
                     <div class="card shadow-sm h-100 border-0">
                         <div class="card-body p-4">
                             <h4 class="card-title mb-4">Ya tengo cuenta</h4>
-                            <form onsubmit="event.preventDefault(); alert('Login válido. Pendiente de conexión con Backend para generar la sesión.');">
+                            <form onsubmit="iniciarSesion(event)">
                                 <div class="mb-3">
                                     <label class="form-label text-muted small">Correo electrónico</label>
-                                    <input type="email" class="form-control" placeholder="ejemplo@correo.com" required>
+                                    <input type="email" id="login-email" class="form-control" placeholder="ejemplo@correo.com" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label text-muted small">Contraseña</label>
-                                    <input type="password" class="form-control" placeholder="••••••••" required>
+                                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100 mb-4">Entrar</button>
                             </form>
@@ -340,20 +334,20 @@ function renderizarLogin() {
                             <h4 class="card-title mb-4">Crear una cuenta nueva</h4>
                             <p class="text-muted small mb-4">Regístrate para poder gestionar el estado de tus pedidos y revisar tu histórico.</p>
                             
-                            <form onsubmit="event.preventDefault(); alert('Registro válido en Frontend. Pasando datos al Backend...');">
+                            <form onsubmit="registrarUsuario(event)">
                                 <div class="mb-3">
                                     <label class="form-label text-muted small">Nombre completo</label>
-                                    <input type="text" class="form-control" placeholder="Nombre completo" minlength="3" required>
+                                    <input type="text" id="reg-nombre" class="form-control" placeholder="Nombre completo" minlength="3" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-muted small">Correo electrónico</label>
-                                    <input type="email" class="form-control" placeholder="ejemplo@correo.com" required>
+                                    <input type="email" id="reg-email" class="form-control" placeholder="ejemplo@correo.com" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label text-muted small">Contraseña</label>
-                                    <input type="password" class="form-control" placeholder="Crea una contraseña segura" 
-                                           pattern="(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
-                                           title="Debe contener al menos 8 caracteres, un número, una mayúscula y una minúscula" 
+                                    <input type="password" id="reg-password" class="form-control" placeholder="Crea una contraseña segura" 
+                                           pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}" 
+                                           title="Debe contener al menos 8 caracteres, un número, una mayúscula, una minúscula y un símbolo especial (!@#$%^&*)" 
                                            required>
                                 </div>
                                 <button type="submit" class="btn btn-success w-100">Registrarse</button>
@@ -367,7 +361,107 @@ function renderizarLogin() {
     `;
 }
 
-// Lógica de Carrito (AHORA USA 'productos')
+// --- 7. GESTIÓN ASÍNCRONA DE USUARIOS (CONEXIÓN CON PHP) ---
+
+// Cambia visualmente el enlace de "Login" por un desplegable con el nombre del usuario
+function actualizarMenuNavegacion() {
+    const contenedor = document.getElementById('contenedor-auth-nav');
+    if (!contenedor) return;
+
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+
+    if (usuarioSession) {
+        const usuario = JSON.parse(usuarioSession);
+        contenedor.innerHTML = `
+            <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle fw-semibold text-primary mx-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-check-fill"></i> ${usuario.nombre.split(' ')[0]}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
+                    <li><button class="dropdown-item text-danger small fw-semibold" onclick="cerrarSesion()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button></li>
+                </ul>
+            </div>
+        `;
+    } else {
+        contenedor.innerHTML = `
+            <a href="#login" class="nav-link fw-semibold mx-2"><i class="bi bi-person-circle"></i> Login</a>
+        `;
+    }
+}
+
+// Función para destruir los datos de sesión y mandar al usuario a Home
+function cerrarSesion() {
+    localStorage.removeItem('usuarioTelecom');
+    alert("Has cerrado sesión correctamente.");
+    actualizarMenuNavegacion();
+    window.location.hash = "#home";
+}
+
+async function registrarUsuario(event) {
+    event.preventDefault();
+
+    const nombre = document.getElementById('reg-nombre').value;
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+
+    try {
+        const respuesta = await fetch('../backend/registro.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, email, password })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            alert("¡Registro exitoso! Ya puedes iniciar sesión en la columna izquierda.");
+            event.target.reset(); 
+        } else {
+            alert("Error: " + resultado.error);
+        }
+    } catch (error) {
+        console.error("Error al registrar:", error);
+        alert("Ocurrió un error al intentar conectar con el servidor.");
+    }
+}
+
+async function iniciarSesion(event) {
+    event.preventDefault();
+
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+        const respuesta = await fetch('../backend/login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            // Guardamos la sesión en el navegador
+            localStorage.setItem('usuarioTelecom', JSON.stringify(resultado.usuario));
+            
+            // Actualizamos visualmente el menú superior de inmediato
+            actualizarMenuNavegacion();
+            
+            alert(`¡Bienvenido de nuevo, ${resultado.usuario.nombre}!`);
+            
+            // Redirigimos al catálogo
+            window.location.hash = "#catalogo";
+        } else {
+            alert("Error de autenticación: " + resultado.error);
+        }
+    } catch (error) {
+        console.error("Error al iniciar sesión:", error);
+        alert("Ocurrió un error de conexión con el servidor local.");
+    }
+}
+
+// --- 8. LÓGICA E INTERFAZ DEL CARRITO DE LA COMPRA ---
+
 function agregarAlCarrito(id) {
     const producto = productos.find(p => p.id === id);
     if (producto) {
@@ -514,6 +608,6 @@ function renderizarCarrito() {
 }
 
 function procesarPago() {
-    alert("Para procesar el pago y guardar el pedido en tu historial, el servidor debe validar tu sesión de usuario. Pendiente de integración con Backend.");
+    alert("Para procesar el pago y guardar el pedido en tu historial, el servidor debe validar tu sesión de usuario. Pendiente de integración con el archivo guardar_pedido.php de la Fase 4.");
     window.location.hash = "#login";
 }
