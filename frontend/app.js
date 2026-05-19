@@ -14,6 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Controlador principal de navegación (SPA Router)
     const enrutador = () => {
         const hash = window.location.hash || "#home";
+
+        if (hash === "#home" || hash === "") {
+            document.getElementById("home").style.display = "block";
+            renderizarHome();
+        }
+        
         
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
@@ -48,6 +54,95 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("hashchange", enrutador);
     enrutador();
 });
+
+// Función para renderizar la página principal con varios carruseles
+function renderizarHome() {
+    const contenedorHome = document.getElementById("home");
+    
+    // Contenedor principal de la página de inicio
+    contenedorHome.innerHTML = `
+        <div class="container py-5" id="home-content">
+            <h2 class="mb-5 fw-bold text-center">Bienvenido a Telecom</h2>
+        </div>
+    `;
+    
+    const homeContent = document.getElementById("home-content");
+
+    // Simulamos crear dos carruseles (puedes crear los que quieras)
+    // Nota: slice() coge una porción del array para simular distintas listas
+    const carrusel1 = construirCarrusel("Productos Destacados", productosMock, 'carrusel-destacados');
+    
+    // Invertimos el array para simular que son productos diferentes en el segundo carrusel
+    const carrusel2 = construirCarrusel("Novedades en Redes", [...productosMock].reverse(), 'carrusel-novedades');
+
+    homeContent.innerHTML += carrusel1 + carrusel2;
+}
+
+// Generador de plantillas HTML para un carrusel
+function construirCarrusel(titulo, productos, id) {
+    let tarjetasHTML = productos.map(prod => `
+        <div class="card h-100 shadow-sm border-0 bg-light carousel-item-card">
+            <img src="${prod.imagen}" class="card-img-top p-3 rounded" alt="${prod.nombre}" style="height: 180px; object-fit: contain;">
+            <div class="card-body d-flex flex-column">
+                <span class="badge bg-secondary mb-2 align-self-start">${prod.marca}</span>
+                <h5 class="card-title fs-6 fw-bold text-truncate" title="${prod.nombre}">${prod.nombre}</h5>
+                <div class="mt-auto d-flex justify-content-between align-items-center pt-3">
+                    <span class="fs-5 fw-bold text-primary">${prod.precio.toFixed(2)} €</span>
+                    <button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir">
+                        <i class="bi bi-cart-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    return `
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 fw-bold mb-0">${titulo}</h3>
+                <a href="#catalogo" class="text-primary small text-decoration-none fw-semibold">Ver todo →</a>
+            </div>
+            
+            <div class="position-relative">
+                <button class="btn btn-outline-secondary shadow rounded-circle position-absolute start-0 top-50 translate-middle-y bg-white" 
+                        onclick="desplazarCarrusel('${id}', -300)" 
+                        style="width: 40px; height: 40px; z-index: 10;">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                
+                <div id="${id}" class="carousel-track py-3 px-2">
+                    ${tarjetasHTML}
+                </div>
+                
+                <button class="btn btn-outline-secondary shadow rounded-circle position-absolute end-0 top-50 translate-middle-y bg-white" 
+                        onclick="desplazarCarrusel('${id}', 300)" 
+                        style="width: 40px; height: 40px; z-index: 10;">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Función que mueve el scroll de un carrusel concreto
+function desplazarCarrusel(idCarrusel, cantidadPixels) {
+    const track = document.getElementById(idCarrusel);
+    // Movemos el scroll nativo hacia la izquierda o derecha
+    track.scrollBy({ left: cantidadPixels, behavior: 'smooth' });
+}
+
+// Manejador de la barra de búsqueda
+function realizarBusqueda(evento) {
+    evento.preventDefault(); // Evita que la página se recargue (comportamiento por defecto del form)
+    const termino = document.getElementById("inputBusqueda").value;
+    
+    if(termino.trim() !== "") {
+        alert("Buscando: " + termino + "\n(Pendiente de filtrar el array de productos)");
+        // Aquí podrías redirigir a una vista de resultados o filtrar tu catálogo
+    }
+}
+
+
 
 // Renderiza la vista de catálogo
 function renderizarCatalogo() {
@@ -93,7 +188,7 @@ function renderizarCatalogo() {
     });
 }
 
-// Renderiza la vista de detalle
+// Renderiza la vista de detalles
 function renderizarDetalle(id) {
     const prod = productosMock.find(p => p.id === id);
     const contenedorProducto = document.getElementById("producto");
