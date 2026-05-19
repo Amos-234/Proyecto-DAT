@@ -1,9 +1,70 @@
-// Mock de datos para desarrollo del Frontend. 
+// Mock de datos para desarrollo del Frontend (50 productos)
 const productosMock = [
-    { id: 1, nombre: "Switch Cisco Catalyst 2960", marca: "Cisco", categoria: "Switches", precio: 250.00, imagen: "https://via.placeholder.com/600x400?text=Switch+Cisco", descripcion: "Switch de 24 puertos Gigabit, ideal para pequeñas y medianas empresas. Alta fiabilidad y rendimiento." },
-    { id: 2, nombre: "Router Ubiquiti EdgeRouter 4", marca: "Ubiquiti", categoria: "Routers", precio: 199.00, imagen: "https://via.placeholder.com/600x400?text=Router+Ubiquiti", descripcion: "Router avanzado de 4 puertos con gran capacidad de procesamiento. Millones de paquetes por segundo." },
-    { id: 3, nombre: "Cable de Fibra Óptica LC-LC 5m", marca: "Genérico", categoria: "Cableado", precio: 15.50, imagen: "https://via.placeholder.com/600x400?text=Cable+Fibra", descripcion: "Latiguillo de fibra óptica multimodo OM3 dúplex. Perfecto para conexiones de alta velocidad." },
-    { id: 4, nombre: "Access Point Aruba 515", marca: "Aruba", categoria: "Inalámbrico", precio: 320.00, imagen: "https://via.placeholder.com/600x400?text=Aruba+AP", descripcion: "Punto de acceso WiFi 6 de alto rendimiento para entornos de alta densidad de usuarios." }
+    // --- SWITCHES ---
+    { id: 1, nombre: "Switch Cisco Catalyst 2960-X 24 GigE", marca: "Cisco", categoria: "Switches", precio: 390.00, precioOriginal: 450.00, imagen: "https://via.placeholder.com/600x400?text=Cisco+Catalyst+2960", descripcion: "Switch gestionable de 24 puertos Gigabit con 4 enlaces ascendentes SFP. Ideal para acceso empresarial." },
+    { id: 2, nombre: "Ubiquiti UniFi Switch 24 PoE", marca: "Ubiquiti", categoria: "Switches", precio: 379.99, imagen: "https://via.placeholder.com/600x400?text=UniFi+Switch+24", descripcion: "Switch PoE+ de 24 puertos con refrigeración silenciosa y gestión centralizada UniFi." },
+    { id: 3, nombre: "MikroTik Cloud Router Switch 326", marca: "MikroTik", categoria: "Switches", precio: 150.00, precioOriginal: 185.50, imagen: "https://via.placeholder.com/600x400?text=MikroTik+CRS326", descripcion: "Switch de 24 puertos Gigabit Ethernet y 2 puertos SFP+ para conectividad 10G." },
+    { id: 4, nombre: "TP-Link JetStream 16-Port Gigabit", marca: "TP-Link", categoria: "Switches", precio: 120.00, imagen: "https://via.placeholder.com/600x400?text=TP-Link+JetStream", descripcion: "Switch Smart Managed ideal para pymes con opciones avanzadas de VLAN y QoS." },
+    { id: 5, nombre: "Switch Aruba Instant On 1930 48G", marca: "Aruba", categoria: "Switches", precio: 450.00, precioOriginal: 510.00, imagen: "https://via.placeholder.com/600x400?text=Aruba+1930+48G", descripcion: "Switch de 48 puertos Gigabit gestionado por nube para pequeñas empresas." },
+    { id: 6, nombre: "Netgear ProSAFE 8-Port Gigabit", marca: "Netgear", categoria: "Switches", precio: 45.00, imagen: "https://via.placeholder.com/600x400?text=Netgear+ProSAFE+8", descripcion: "Switch no gestionable Plug-and-Play de carcasa metálica." },
+    { id: 7, nombre: "Cisco Nexus 93180YC-EX", marca: "Cisco", categoria: "Switches", precio: 4500.00, imagen: "https://via.placeholder.com/600x400?text=Cisco+Nexus", descripcion: "Switch de centro de datos de ultra baja latencia con 48 puertos 10/25G." },
+    { id: 8, nombre: "Ubiquiti EdgeSwitch 10XP", marca: "Ubiquiti", categoria: "Switches", precio: 110.00, precioOriginal: 135.00, imagen: "https://via.placeholder.com/600x400?text=EdgeSwitch+10XP", descripcion: "Switch PoE de 8 puertos Gigabit diseñado para implementaciones WISP." },
+
+    // --- ROUTERS ---
+    { id: 9, nombre: "Router Ubiquiti EdgeRouter 4", marca: "Ubiquiti", categoria: "Routers", precio: 199.00, imagen: "https://via.placeholder.com/600x400?text=EdgeRouter+4", descripcion: "Router avanzado con capacidad de enrutamiento de 3.4 millones de paquetes por segundo." },
+    { id: 10, nombre: "MikroTik hEX RB750Gr3", marca: "MikroTik", categoria: "Routers", precio: 45.00, precioOriginal: 59.90, imagen: "https://via.placeholder.com/600x400?text=MikroTik+hEX", descripcion: "Pequeño router de 5 puertos Gigabit con cifrado IPsec por hardware." },
+    { id: 11, nombre: "Cisco ISR 4321", marca: "Cisco", categoria: "Routers", precio: 850.00, imagen: "https://via.placeholder.com/600x400?text=Cisco+ISR+4321", descripcion: "Router de servicios integrados para sucursales corporativas." },
+    { id: 12, nombre: "TP-Link Omada ER605", marca: "TP-Link", categoria: "Routers", precio: 55.00, precioOriginal: 65.00, imagen: "https://via.placeholder.com/600x400?text=Omada+ER605", descripcion: "Router VPN Gigabit Multi-WAN seguro y gestionable por software." },
+    { id: 13, nombre: "Ubiquiti UniFi Dream Machine Pro", marca: "Ubiquiti", categoria: "Routers", precio: 410.00, imagen: "https://via.placeholder.com/600x400?text=UDM+Pro", descripcion: "Gateway de seguridad empresarial todo en uno y controlador de red." },
+    { id: 14, nombre: "MikroTik CCR1009-7G-1C", marca: "MikroTik", categoria: "Routers", precio: 380.00, precioOriginal: 450.00, imagen: "https://via.placeholder.com/600x400?text=MikroTik+CCR1009", descripcion: "Cloud Core Router de grado industrial con CPU de 9 núcleos." },
+    { id: 15, nombre: "Cisco Meraki MX64", marca: "Cisco", categoria: "Routers", precio: 520.00, imagen: "https://via.placeholder.com/600x400?text=Meraki+MX64", descripcion: "Appliance de seguridad y SD-WAN gestionado en la nube al 100%." },
+
+    // --- FIREWALLS ---
+    { id: 16, nombre: "Fortinet FortiGate 40F", marca: "Fortinet", categoria: "Firewalls", precio: 480.00, imagen: "https://via.placeholder.com/600x400?text=FortiGate+40F", descripcion: "Appliance NGFW (Next-Generation Firewall) ideal para oficinas remotas." },
+    { id: 17, nombre: "Palo Alto Networks PA-410", marca: "Palo Alto", categoria: "Firewalls", precio: 850.00, precioOriginal: 950.00, imagen: "https://via.placeholder.com/600x400?text=Palo+Alto+PA-410", descripcion: "Firewall con machine learning integrado para prevenir amenazas de día cero." },
+    { id: 18, nombre: "Sophos XGS 116", marca: "Sophos", categoria: "Firewalls", precio: 580.00, precioOriginal: 620.00, imagen: "https://via.placeholder.com/600x400?text=Sophos+XGS+116", descripcion: "Protección perimetral avanzada con arquitectura Xstream." },
+    { id: 19, nombre: "Cisco Firepower 1010", marca: "Cisco", categoria: "Firewalls", precio: 780.00, imagen: "https://via.placeholder.com/600x400?text=Firepower+1010", descripcion: "Defensa contra amenazas superior orientada a Pymes." },
+    { id: 20, nombre: "Fortinet FortiGate 60F", marca: "Fortinet", categoria: "Firewalls", precio: 750.00, imagen: "https://via.placeholder.com/600x400?text=FortiGate+60F", descripcion: "Firewall de alto rendimiento con SD-WAN segura." },
+    { id: 21, nombre: "WatchGuard Firebox T20", marca: "Genérico", categoria: "Firewalls", precio: 290.00, precioOriginal: 340.00, imagen: "https://via.placeholder.com/600x400?text=WatchGuard+T20", descripcion: "Seguridad de red de nivel empresarial para pequeñas oficinas." },
+
+    // --- ACCESS POINTS ---
+    { id: 22, nombre: "Ubiquiti UniFi AP AC Pro", marca: "Ubiquiti", categoria: "Access Points", precio: 145.00, imagen: "https://via.placeholder.com/600x400?text=UniFi+AC+Pro", descripcion: "Punto de acceso dual-band 802.11ac para interiores y exteriores." },
+    { id: 23, nombre: "Aruba Instant On AP22", marca: "Aruba", categoria: "Access Points", precio: 165.00, imagen: "https://via.placeholder.com/600x400?text=Aruba+AP22", descripcion: "Access Point Wi-Fi 6 (802.11ax) de alto rendimiento." },
+    { id: 24, nombre: "Cisco Meraki MR46", marca: "Cisco", categoria: "Access Points", precio: 790.00, precioOriginal: 890.00, imagen: "https://via.placeholder.com/600x400?text=Meraki+MR46", descripcion: "AP Wi-Fi 6 gestionado en la nube, optimizado para alta densidad." },
+    { id: 25, nombre: "TP-Link Omada EAP225", marca: "TP-Link", categoria: "Access Points", precio: 65.00, imagen: "https://via.placeholder.com/600x400?text=Omada+EAP225", descripcion: "Punto de acceso de montaje en techo Gigabit Inalámbrico MU-MIMO." },
+    { id: 26, nombre: "Ubiquiti UniFi U6 Lite", marca: "Ubiquiti", categoria: "Access Points", precio: 99.00, precioOriginal: 110.00, imagen: "https://via.placeholder.com/600x400?text=UniFi+U6+Lite", descripcion: "Punto de acceso Wi-Fi 6 compacto para despliegues masivos." },
+    { id: 27, nombre: "MikroTik cAP ac", marca: "MikroTik", categoria: "Access Points", precio: 75.00, imagen: "https://via.placeholder.com/600x400?text=MikroTik+cAP", descripcion: "AP de doble banda que pasa desapercibido en el techo." },
+    { id: 28, nombre: "Aruba AP-515", marca: "Aruba", categoria: "Access Points", precio: 450.00, imagen: "https://via.placeholder.com/600x400?text=Aruba+AP-515", descripcion: "AP de campus de alto rendimiento para entornos móviles e IoT." },
+    { id: 29, nombre: "Netgear WAX610", marca: "Netgear", categoria: "Access Points", precio: 125.00, precioOriginal: 155.00, imagen: "https://via.placeholder.com/600x400?text=Netgear+WAX610", descripcion: "Punto de acceso Insight Managed WiFi 6 AX1800." },
+
+    // --- ANTENAS ---
+    { id: 30, nombre: "Ubiquiti LiteBeam 5AC Gen2", marca: "Ubiquiti", categoria: "Antenas", precio: 65.00, imagen: "https://via.placeholder.com/600x400?text=LiteBeam+5AC", descripcion: "CPE airMAX ac ultra ligero de largo alcance y alta directividad." },
+    { id: 31, nombre: "MikroTik SXTsq Lite5", marca: "MikroTik", categoria: "Antenas", precio: 39.00, precioOriginal: 49.00, imagen: "https://via.placeholder.com/600x400?text=SXTsq+Lite5", descripcion: "Dispositivo inalámbrico compacto para enlaces punto a punto o como CPE." },
+    { id: 32, nombre: "Ubiquiti NanoStation Loco M5", marca: "Ubiquiti", categoria: "Antenas", precio: 55.00, imagen: "https://via.placeholder.com/600x400?text=NanoStation+M5", descripcion: "CPE versátil y de bajo coste para redes ISP inalámbricas." },
+    { id: 33, nombre: "Ubiquiti airFiber 5XHD", marca: "Ubiquiti", categoria: "Antenas", precio: 420.00, imagen: "https://via.placeholder.com/600x400?text=airFiber+5XHD", descripcion: "Radio de backhaul de 5 GHz diseñada específicamente para WISP." },
+    { id: 34, nombre: "MikroTik LDF 5", marca: "MikroTik", categoria: "Antenas", precio: 45.00, imagen: "https://via.placeholder.com/600x400?text=MikroTik+LDF+5", descripcion: "Sistema inalámbrico con antena parabólica para enlaces extremadamente largos." },
+    { id: 35, nombre: "TP-Link CPE510", marca: "TP-Link", categoria: "Antenas", precio: 40.00, precioOriginal: 48.00, imagen: "https://via.placeholder.com/600x400?text=TP-Link+CPE510", descripcion: "CPE Inalámbrico de Exterior a 5GHz 300Mbps 13dBi." },
+
+    // --- CABLEADO ---
+    { id: 36, nombre: "Bobina Cable UTP Cat6 305m", marca: "Genérico", categoria: "Cableado", precio: 75.00, precioOriginal: 95.00, imagen: "https://via.placeholder.com/600x400?text=Bobina+Cat6", descripcion: "Cable de par trenzado sin apantallar de cobre 100% puro." },
+    { id: 37, nombre: "Bobina Cable FTP Cat6a 305m", marca: "Genérico", categoria: "Cableado", precio: 145.00, imagen: "https://via.placeholder.com/600x400?text=Bobina+Cat6a", descripcion: "Cable apantallado para redes de 10 Gigabit, alta resistencia a interferencias." },
+    { id: 38, nombre: "Latiguillo Fibra Óptica LC-LC 5m", marca: "Genérico", categoria: "Cableado", precio: 15.50, imagen: "https://via.placeholder.com/600x400?text=Fibra+OM3", descripcion: "Latiguillo de fibra multimodo dúplex 50/125 OM3." },
+    { id: 39, nombre: "Latiguillo Fibra SC-APC 10m", marca: "Genérico", categoria: "Cableado", precio: 9.00, precioOriginal: 12.00, imagen: "https://via.placeholder.com/600x400?text=Fibra+SC-APC", descripcion: "Latiguillo monomodo ideal para instalaciones de fibra óptica hasta el hogar (FTTH)." },
+    { id: 40, nombre: "Cable DAC SFP+ 10G 1m", marca: "Cisco", categoria: "Cableado", precio: 35.00, imagen: "https://via.placeholder.com/600x400?text=Cable+DAC", descripcion: "Cable Twinax de conexión directa (DAC) para enlaces de cortísima distancia." },
+    { id: 41, nombre: "Pack 10 Latiguillos UTP Cat6 1m", marca: "Genérico", categoria: "Cableado", precio: 18.00, imagen: "https://via.placeholder.com/600x400?text=Pack+Latiguillos", descripcion: "Latiguillos de red RJ45 en varios colores para parcheo de armarios." },
+
+    // --- RACKS ---
+    { id: 42, nombre: "Armario Rack Mural 19\" 9U", marca: "Genérico", categoria: "Racks", precio: 85.00, imagen: "https://via.placeholder.com/600x400?text=Rack+Mural+9U", descripcion: "Armario de pared perfecto para pequeñas instalaciones de red o CCTV." },
+    { id: 43, nombre: "Armario Rack Suelo 19\" 42U", marca: "Genérico", categoria: "Racks", precio: 390.00, precioOriginal: 450.00, imagen: "https://via.placeholder.com/600x400?text=Rack+42U", descripcion: "Armario de pie para servidores y equipamiento de red pesado, con ventilación." },
+    { id: 44, nombre: "Bandeja Fija Rack 19\" 1U", marca: "Genérico", categoria: "Racks", precio: 22.00, imagen: "https://via.placeholder.com/600x400?text=Bandeja+Rack", descripcion: "Bandeja perforada para soportar routers no enrackables o monitores." },
+    { id: 45, nombre: "Regleta PDU 8 Tomas Rack 19\"", marca: "Genérico", categoria: "Racks", precio: 35.00, imagen: "https://via.placeholder.com/600x400?text=Regleta+PDU", descripcion: "Unidad de distribución de energía con interruptor para armarios." },
+    { id: 46, nombre: "Panel de Parcheo 24 Puertos Cat6", marca: "Genérico", categoria: "Racks", precio: 30.00, precioOriginal: 45.00, imagen: "https://via.placeholder.com/600x400?text=Patch+Panel", descripcion: "Patch panel vacío para inserción de módulos Keystone (Jack)." },
+    { id: 47, nombre: "GuíaCables 1U con Tapa", marca: "Genérico", categoria: "Racks", precio: 15.00, imagen: "https://via.placeholder.com/600x400?text=GuiaCables", descripcion: "Organizador de cables frontal para un armario rack más ordenado." },
+
+    // --- ACCESORIOS ---
+    { id: 48, nombre: "Módulo SFP 1G Base-T Cobre", marca: "Ubiquiti", categoria: "Accesorios", precio: 25.00, imagen: "https://via.placeholder.com/600x400?text=SFP+Cobre", descripcion: "Transceptor SFP a RJ45 para distancias de hasta 100m." },
+    { id: 49, nombre: "Módulo SFP+ 10G SR Multimodo", marca: "Cisco", categoria: "Accesorios", precio: 75.00, precioOriginal: 95.00, imagen: "https://via.placeholder.com/600x400?text=SFP%2B+10G", descripcion: "Transceptor óptico para cortas distancias (hasta 300m sobre fibra OM3)." },
+    { id: 50, nombre: "Inyector PoE+ 30W Gigabit", marca: "TP-Link", categoria: "Accesorios", precio: 22.00, imagen: "https://via.placeholder.com/600x400?text=Inyector+PoE", descripcion: "Inyector de energía a través de Ethernet para alimentar APs y cámaras." }
 ];
 
 // Estado global del carrito
@@ -38,154 +99,95 @@ document.addEventListener("DOMContentLoaded", () => {
             seccionActiva.style.display = "block";
         }
 
-        if (hash === "#catalogo") {
-            renderizarCatalogo();
-        }
-        
-        if (hash === "#login") {
-            renderizarLogin();
-        }
-
-        if (hash === "#carrito") {
-            renderizarCarrito();
-        }
+        // Enrutamiento a las funciones renderizadoras
+        if (hash === "#home") renderizarHome();
+        if (hash === "#catalogo") renderizarCatalogo();
+        if (hash === "#login") renderizarLogin();
+        if (hash === "#carrito") renderizarCarrito();
     };
 
     window.addEventListener("hashchange", enrutador);
     enrutador();
 });
 
-// Función para renderizar la página principal con varios carruseles
-function renderizarHome() {
-    const contenedorHome = document.getElementById("home");
-    
-    // Contenedor principal de la página de inicio
-    contenedorHome.innerHTML = `
-        <div class="container py-5" id="home-content">
-            <h2 class="mb-5 fw-bold text-center">Bienvenido a Telecom</h2>
-        </div>
-    `;
-    
-    const homeContent = document.getElementById("home-content");
+// Función centralizada para generar el HTML de una tarjeta (Calcula % de descuento dinámico)
+function generarTarjetaProducto(prod, esCarrusel = false) {
+    let etiquetaOferta = '';
+    let uiPrecio = `<span class="fs-5 fw-bold text-primary">${prod.precio.toFixed(2)} €</span>`;
 
-    // Simulamos crear dos carruseles (puedes crear los que quieras)
-    // Nota: slice() coge una porción del array para simular distintas listas
-    const carrusel1 = construirCarrusel("Productos Destacados", productosMock, 'carrusel-destacados');
-    
-    // Invertimos el array para simular que son productos diferentes en el segundo carrusel
-    const carrusel2 = construirCarrusel("Novedades en Redes", [...productosMock].reverse(), 'carrusel-novedades');
+    // Lógica matemática para calcular el porcentaje de descuento si existe un precio original mayor
+    if (prod.precioOriginal && prod.precioOriginal > prod.precio) {
+        const porcentajeDescuento = Math.round(((prod.precioOriginal - prod.precio) / prod.precioOriginal) * 100);
+        etiquetaOferta = `<span class="badge bg-danger position-absolute top-0 start-0 m-2">-${porcentajeDescuento}% Dto.</span>`;
+        uiPrecio = `<span class="text-muted text-decoration-line-through small me-2">${prod.precioOriginal.toFixed(2)} €</span><span class="fs-5 fw-bold text-danger">${prod.precio.toFixed(2)} €</span>`;
+    }
 
-    homeContent.innerHTML += carrusel1 + carrusel2;
-}
-
-// Generador de plantillas HTML para un carrusel
-function construirCarrusel(titulo, productos, id) {
-    let tarjetasHTML = productos.map(prod => `
-        <div class="card h-100 shadow-sm border-0 bg-light carousel-item-card">
-            <img src="${prod.imagen}" class="card-img-top p-3 rounded" alt="${prod.nombre}" style="height: 180px; object-fit: contain;">
-            <div class="card-body d-flex flex-column">
-                <span class="badge bg-secondary mb-2 align-self-start">${prod.marca}</span>
-                <h5 class="card-title fs-6 fw-bold text-truncate" title="${prod.nombre}">${prod.nombre}</h5>
-                <div class="mt-auto d-flex justify-content-between align-items-center pt-3">
-                    <span class="fs-5 fw-bold text-primary">${prod.precio.toFixed(2)} €</span>
-                    <button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir">
-                        <i class="bi bi-cart-plus"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `).join('');
+    const anchoEstilo = esCarrusel ? 'style="min-width: 280px; max-width: 280px;"' : '';
 
     return `
-        <div class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="h5 fw-bold mb-0">${titulo}</h3>
-                <a href="#catalogo" class="text-primary small text-decoration-none fw-semibold">Ver todo →</a>
-            </div>
-            
-            <div class="position-relative">
-                <button class="btn btn-outline-secondary shadow rounded-circle position-absolute start-0 top-50 translate-middle-y bg-white" 
-                        onclick="desplazarCarrusel('${id}', -300)" 
-                        style="width: 40px; height: 40px; z-index: 10;">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-                
-                <div id="${id}" class="carousel-track py-3 px-2">
-                    ${tarjetasHTML}
+        <div class="card h-100 shadow-sm border-0 bg-light" ${anchoEstilo}>
+            ${etiquetaOferta}
+            <img src="${prod.imagen}" class="card-img-top p-2 rounded" alt="${prod.nombre}">
+            <div class="card-body d-flex flex-column">
+                <div class="mb-2">
+                    <span class="badge bg-secondary">${prod.marca}</span>
+                    <span class="badge bg-info text-dark">${prod.categoria}</span>
                 </div>
-                
-                <button class="btn btn-outline-secondary shadow rounded-circle position-absolute end-0 top-50 translate-middle-y bg-white" 
-                        onclick="desplazarCarrusel('${id}', 300)" 
-                        style="width: 40px; height: 40px; z-index: 10;">
-                    <i class="bi bi-chevron-right"></i>
-                </button>
+                <h5 class="card-title fs-6 fw-bold">${prod.nombre}</h5>
+                <p class="card-text text-muted small mb-3 flex-grow-1">${prod.descripcion.substring(0, 60)}...</p>
+                <div class="d-flex justify-content-between align-items-center mt-auto">
+                    <div>${uiPrecio}</div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito">
+                            <i class="bi bi-cart-plus"></i>
+                        </button>
+                        <a href="#producto/${prod.id}" class="btn btn-sm btn-primary">Ver</a>
+                    </div>
+                </div>
             </div>
         </div>
     `;
 }
 
-// Función que mueve el scroll de un carrusel concreto
-function desplazarCarrusel(idCarrusel, cantidadPixels) {
-    const track = document.getElementById(idCarrusel);
-    // Movemos el scroll nativo hacia la izquierda o derecha
-    track.scrollBy({ left: cantidadPixels, behavior: 'smooth' });
+// Renderiza la página principal (3 Carruseles)
+function renderizarHome() {
+    const destacados = productosMock.slice(0, 6);
+    document.getElementById("trackDestacados").innerHTML = destacados.map(p => generarTarjetaProducto(p, true)).join('');
+
+    const novedades = productosMock.slice(6, 12);
+    document.getElementById("trackNovedades").innerHTML = novedades.map(p => generarTarjetaProducto(p, true)).join('');
+
+    const ofertas = productosMock.filter(p => p.precioOriginal && p.precioOriginal > p.precio).slice(0, 8);
+    document.getElementById("trackOfertas").innerHTML = ofertas.map(p => generarTarjetaProducto(p, true)).join('');
 }
 
-// Manejador de la barra de búsqueda
-function realizarBusqueda(evento) {
-    evento.preventDefault(); // Evita que la página se recargue (comportamiento por defecto del form)
-    const termino = document.getElementById("inputBusqueda").value;
-    
-    if(termino.trim() !== "") {
-        alert("Buscando: " + termino + "\n(Pendiente de filtrar el array de productos)");
-        // Aquí podrías redirigir a una vista de resultados o filtrar tu catálogo
-    }
-}
-
-
-
-// Renderiza la vista de catálogo
-function renderizarCatalogo() {
+// Renderiza el Catálogo con Filtros
+function renderizarCatalogo(filtro = "Todos") {
     const contenedorCatalogo = document.getElementById("catalogo");
-    
+    const categoriasIneditas = ["Todos", ...new Set(productosMock.map(p => p.categoria))];
+
+    let botonesFiltroHTML = categoriasIneditas.map(cat => `
+        <button class="btn ${filtro === cat ? 'btn-primary' : 'btn-outline-primary'} mb-2 me-2" 
+                onclick="renderizarCatalogo('${cat}')">${cat}</button>
+    `).join('');
+
     contenedorCatalogo.innerHTML = `
         <div class="container py-5">
-            <h2 class="mb-4">Catálogo de Componentes de Red</h2>
+            <h2 class="mb-4 fw-bold">Catálogo de Componentes</h2>
+            <div class="d-flex flex-wrap mb-4 pb-3 border-bottom">${botonesFiltroHTML}</div>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="grid-productos"></div>
         </div>
     `;
 
     const grid = document.getElementById("grid-productos");
+    const productosFiltrados = filtro === "Todos" ? productosMock : productosMock.filter(prod => prod.categoria === filtro);
 
-    productosMock.forEach(prod => {
-        const tarjeta = document.createElement("div");
-        tarjeta.className = "col";
-        tarjeta.innerHTML = `
-            <div class="card h-100 shadow-sm border-0 bg-light">
-                <img src="${prod.imagen}" class="card-img-top p-2 rounded" alt="${prod.nombre}">
-                <div class="card-body d-flex flex-column">
-                    <div class="mb-2">
-                        <span class="badge bg-secondary">${prod.marca}</span>
-                        <span class="badge bg-info text-dark">${prod.categoria}</span>
-                    </div>
-                    <h5 class="card-title fs-6 fw-bold">${prod.nombre}</h5>
-                    <p class="card-text text-muted small mb-3 flex-grow-1">${prod.descripcion.substring(0, 60)}...</p>
-                    <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="fs-5 fw-bold text-primary">${prod.precio.toFixed(2)} €</span>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito">
-                                <i class="bi bi-cart-plus"></i>
-                            </button>
-                            <a href="#producto/${prod.id}" class="btn btn-sm btn-primary">
-                                Detalles
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        grid.appendChild(tarjeta);
-    });
+    if (productosFiltrados.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted fs-5">No hay productos en esta categoría.</p></div>`;
+        return;
+    }
+
+    grid.innerHTML = productosFiltrados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('');
 }
 
 // Renderiza la vista de detalles
@@ -198,14 +200,22 @@ function renderizarDetalle(id) {
         return;
     }
 
+    let uiPrecioGrande = `<span class="fs-2 text-primary fw-bold">${prod.precio.toFixed(2)} €</span>`;
+    let badgeOfertaDetalle = '';
+
+    if (prod.precioOriginal && prod.precioOriginal > prod.precio) {
+        const porcentajeDescuento = Math.round(((prod.precioOriginal - prod.precio) / prod.precioOriginal) * 100);
+        uiPrecioGrande = `<span class="text-muted text-decoration-line-through fs-4 me-3">${prod.precioOriginal.toFixed(2)} €</span><span class="fs-2 fw-bold text-danger">${prod.precio.toFixed(2)} €</span>`;
+        badgeOfertaDetalle = `<span class="badge bg-danger mb-2 ms-2">¡-${porcentajeDescuento}% de Descuento!</span>`;
+    }
+
     const textoTweet = encodeURIComponent(`¡Mira este increíble ${prod.nombre} por solo ${prod.precio.toFixed(2)}€ en Telecom! 🚀`);
     const urlActual = encodeURIComponent(window.location.href);
-    const enlaceTwitter = `https://twitter.com/intent/tweet?text=${textoTweet}&url=${urlActual}`;
 
     contenedorProducto.innerHTML = `
         <div class="container py-5">
-            <button class="btn btn-link text-decoration-none mb-4 text-dark" onclick="window.location.hash='#catalogo'">
-                <i class="bi bi-arrow-left"></i> Volver al catálogo
+            <button class="btn btn-link text-decoration-none mb-4 text-dark" onclick="window.history.back()">
+                <i class="bi bi-arrow-left"></i> Volver
             </button>
             <div class="row">
                 <div class="col-md-6 mb-4">
@@ -214,8 +224,9 @@ function renderizarDetalle(id) {
                 <div class="col-md-6">
                     <span class="badge bg-secondary mb-2">${prod.marca}</span>
                     <span class="badge bg-info text-dark mb-2">${prod.categoria}</span>
+                    ${badgeOfertaDetalle}
                     <h2 class="fw-bold">${prod.nombre}</h2>
-                    <p class="fs-3 text-primary fw-bold mb-4">${prod.precio.toFixed(2)} €</p>
+                    <div class="mb-4 mt-2">${uiPrecioGrande}</div>
                     <p class="text-muted mb-4">${prod.descripcion}</p>
                     
                     <div class="d-grid gap-2 mb-5">
@@ -226,14 +237,8 @@ function renderizarDetalle(id) {
 
                     <div class="mt-4 pt-4 border-top">
                         <p class="fw-bold mb-3"><i class="bi bi-share"></i> Compartir este producto:</p>
-                        <a href="#" class="btn btn-outline-primary btn-sm me-2 mb-2">
-                            <i class="bi bi-facebook"></i> Compartir en Facebook
-                        </a>
-                        <a href="${enlaceTwitter}" target="_blank" class="btn btn-outline-info btn-sm me-2 mb-2">
+                        <a href="https://twitter.com/intent/tweet?text=${textoTweet}&url=${urlActual}" target="_blank" class="btn btn-outline-info btn-sm me-2 mb-2">
                             <i class="bi bi-twitter-x"></i> Twittear
-                        </a>
-                        <a href="#" class="btn btn-outline-success btn-sm mb-2">
-                            <i class="bi bi-whatsapp"></i> Enviar por WhatsApp
                         </a>
                     </div>
                 </div>
