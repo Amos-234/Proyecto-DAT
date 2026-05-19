@@ -10,12 +10,43 @@
     </head>
 
     <body> 
+        <nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm">
         <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
             <div class="container">
                 <a href="#home" class="navbar-brand">
                     <img src="./assets/img/telecom_ico.png" class="icono_Telecom" alt="Telecom Logo" style="height: 40px;">
                 </a>
 
+                <div class="position-relative flex-grow-1 mx-lg-4 my-2 my-lg-0" style="max-width: 600px;" id="contenedorBusqueda">
+                    <form class="d-flex w-100" onsubmit="realizarBusqueda(event)">
+                        <div class="input-group input-group-lg rounded-pill border shadow-sm bg-white">
+                            <input type="text" id="inputBusqueda" class="form-control border-0 shadow-none px-4 rounded-pill" 
+                                placeholder="¿Qué buscas?" autocomplete="off" oninput="mostrarSugerencias(this.value)">
+                            <button class="btn bg-white border-0 text-secondary px-4 rounded-pill" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="cajaSugerencias" class="position-absolute w-100 bg-white border rounded shadow-lg mt-1 d-none" 
+                        style="z-index: 1050; max-height: 350px; overflow-y: auto;">
+                        </div>
+                </div>
+                
+                <div class="navbar-nav">
+                    <a href="#catalogo" class="nav-link">
+                        <i class="bi bi-list"></i>
+                        Catálogo
+                    </a>
+
+                    <a href="#login" class="nav-link">
+                        <i class="bi bi-person-circle"></i>
+                        Login
+                    </a>
+
+                    <a href="#carrito" class="nav-link">
+                        <i class="bi bi-cart"></i>
+                        Carrito
                 <div class="d-flex mx-auto" style="width: 40%;">
                     <div class="input-group">
                         <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>

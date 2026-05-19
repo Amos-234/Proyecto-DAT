@@ -28,3 +28,11 @@
     flex: 0 0 auto; /* Evita que la tarjeta se encoja */
     width: 260px;   /* Ancho fijo para las tarjetas del carrusel */
 }
+
+/* Efecto hover para los resultados de búsqueda */
+.result-hover {
+    transition: background-color 0.2s ease;
+}
+.result-hover:hover {
+    background-color: #f8f9fa; /* Gris muy clarito de Bootstrap */
+}
