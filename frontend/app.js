@@ -142,6 +142,62 @@ function realizarBusqueda(evento) {
     }
 }
 
+// Función para mostrar los resultados en vivo
+function mostrarSugerencias(texto) {
+    const caja = document.getElementById("cajaSugerencias");
+    
+    // Si el input está vacío, ocultamos la caja y salimos
+    if (!texto || texto.trim().length === 0) {
+        caja.innerHTML = "";
+        caja.classList.add("d-none");
+        return;
+    }
+
+    const termino = texto.toLowerCase().trim();
+    
+    // Filtramos el array buscando coincidencias en nombre o categoría
+    const resultados = productosMock.filter(prod => 
+        prod.nombre.toLowerCase().includes(termino) || 
+        prod.categoria.toLowerCase().includes(termino)
+    );
+
+    // Si no hay resultados
+    if (resultados.length === 0) {
+        caja.innerHTML = `<div class="p-3 text-muted text-center">No se encontraron productos para "${texto}"</div>`;
+        caja.classList.remove("d-none");
+        return;
+    }
+
+    // Si hay resultados, construimos el HTML de cada línea
+    const htmlSugerencias = resultados.map(prod => `
+        <a href="#producto/${prod.id}" class="text-decoration-none text-dark d-flex align-items-center p-2 border-bottom result-hover" onclick="ocultarSugerencias()">
+            <img src="${prod.imagen}" style="width: 50px; height: 50px; object-fit: contain;" class="me-3 rounded bg-light">
+            <div class="flex-grow-1 overflow-hidden">
+                <div class="fw-bold fs-6 text-truncate">${prod.nombre}</div>
+                <div class="small text-muted">${prod.categoria}</div>
+            </div>
+            <div class="fw-bold text-primary ms-2">${prod.precio.toFixed(2)}€</div>
+        </a>
+    `).join('');
+
+    caja.innerHTML = htmlSugerencias;
+    caja.classList.remove("d-none");
+}
+
+function ocultarSugerencias() {
+    const caja = document.getElementById("cajaSugerencias");
+    caja.classList.add("d-none");
+}
+
+// Extra UX: Cerrar las sugerencias si el usuario hace clic fuera del buscador
+document.addEventListener("click", (evento) => {
+    const contenedor = document.getElementById("contenedorBusqueda");
+    // Si el clic NO fue dentro del contenedor del buscador, ocultamos la caja
+    if (contenedor && !contenedor.contains(evento.target)) {
+        ocultarSugerencias();
+    }
+});
+
 
 
 // Renderiza la vista de catálogo
