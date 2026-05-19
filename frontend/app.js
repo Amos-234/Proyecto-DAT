@@ -75,6 +75,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Controlador principal de navegación (SPA Router)
     const enrutador = () => {
         const hash = window.location.hash || "#home";
+
+        if (hash === "#home" || hash === "") {
+            document.getElementById("home").style.display = "block";
+            renderizarHome();
+        }
+        
         
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
@@ -184,7 +190,7 @@ function renderizarCatalogo(filtro = "Todos") {
     grid.innerHTML = productosFiltrados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('');
 }
 
-// Renderiza la vista de detalle
+// Renderiza la vista de detalles
 function renderizarDetalle(id) {
     const prod = productosMock.find(p => p.id === id);
     const contenedorProducto = document.getElementById("producto");
