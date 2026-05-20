@@ -57,6 +57,7 @@ function iniciarEnrutador() {
         if (hash === "#catalogo") renderizarCatalogo();
         if (hash === "#login") renderizarLogin();
         if (hash === "#carrito") renderizarCarrito();
+        if (hash === "#cuenta") renderizarCuenta(); // AÑADIDA LA RUTA DE LA CUENTA
     };
 
     window.addEventListener("hashchange", enrutador);
@@ -80,13 +81,13 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
     return `
         <div class="card h-100 shadow-sm border-0 bg-light" ${anchoEstilo}>
             ${etiquetaOferta}
-            <img src="${prod.imagen}" class="card-img-top p-2 rounded" alt="${prod.nombre}">
+            <img src="${prod.imagen}" class="card-img-top p-2 rounded img-tarjeta-producto" alt="${prod.nombre}">
             <div class="card-body d-flex flex-column">
                 <div class="mb-2">
                     <span class="badge bg-secondary">${prod.marca}</span>
                     <span class="badge bg-info text-dark">${prod.categoria}</span>
                 </div>
-                <h5 class="card-title fs-6 fw-bold">${prod.nombre}</h5>
+                <h5 class="card-title fs-6 fw-bold titulo-producto">${prod.nombre}</h5>
                 <p class="card-text text-muted small mb-3 flex-grow-1">${prod.descripcion.substring(0, 60)}...</p>
                 <div class="d-flex justify-content-between align-items-center mt-auto">
                     <div>${uiPrecio}</div>
@@ -309,21 +310,6 @@ function renderizarLogin() {
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100 mb-4">Entrar</button>
                             </form>
-                            
-                            <div class="d-flex align-items-center mb-4">
-                                <hr class="flex-grow-1">
-                                <span class="mx-2 text-muted small">O iniciar sesión con</span>
-                                <hr class="flex-grow-1">
-                            </div>
-                            
-                            <div class="d-grid gap-3">
-                                <button class="btn btn-outline-danger d-flex align-items-center justify-content-center" type="button">
-                                    <i class="bi bi-google me-2 fs-5"></i> Continuar con Google
-                                </button>
-                                <button class="btn btn-outline-primary d-flex align-items-center justify-content-center" type="button">
-                                    <i class="bi bi-facebook me-2 fs-5"></i> Continuar con Facebook
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -346,9 +332,9 @@ function renderizarLogin() {
                                 <div class="mb-4">
                                     <label class="form-label text-muted small">Contraseña</label>
                                     <input type="password" id="reg-password" class="form-control" placeholder="Crea una contraseña segura" 
-                                           pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}" 
-                                           title="Debe contener al menos 8 caracteres, un número, una mayúscula, una minúscula y un símbolo especial (!@#$%^&*)" 
-                                           required>
+                                        pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}" 
+                                        title="Debe contener al menos 8 caracteres, un número, una mayúscula, una minúscula y un símbolo especial (!@#$%^&*)" 
+                                        required>
                                 </div>
                                 <button type="submit" class="btn btn-success w-100">Registrarse</button>
                             </form>
@@ -361,9 +347,7 @@ function renderizarLogin() {
     `;
 }
 
-// --- 7. GESTIÓN ASÍNCRONA DE USUARIOS (CONEXIÓN CON PHP) ---
-
-// Cambia visualmente el enlace de "Login" por un desplegable con el nombre del usuario
+// --- 7. GESTIÓN ASÍNCRONA DE USUARIOS ---
 function actualizarMenuNavegacion() {
     const contenedor = document.getElementById('contenedor-auth-nav');
     if (!contenedor) return;
@@ -378,7 +362,9 @@ function actualizarMenuNavegacion() {
                     <i class="bi bi-person-check-fill"></i> ${usuario.nombre.split(' ')[0]}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
-                    <li><button class="dropdown-item text-danger small fw-semibold" onclick="cerrarSesion()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button></li>
+                    <li><a class="dropdown-item" href="#cuenta"><i class="bi bi-box-seam me-2"></i> Mis Pedidos</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item text-danger small fw-semibold" onclick="cerrarSesion()"><i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión</button></li>
                 </ul>
             </div>
         `;
@@ -389,7 +375,6 @@ function actualizarMenuNavegacion() {
     }
 }
 
-// Función para destruir los datos de sesión y mandar al usuario a Home
 function cerrarSesion() {
     localStorage.removeItem('usuarioTelecom');
     alert("Has cerrado sesión correctamente.");
@@ -441,15 +426,9 @@ async function iniciarSesion(event) {
         const resultado = await respuesta.json();
 
         if (respuesta.ok) {
-            // Guardamos la sesión en el navegador
             localStorage.setItem('usuarioTelecom', JSON.stringify(resultado.usuario));
-            
-            // Actualizamos visualmente el menú superior de inmediato
             actualizarMenuNavegacion();
-            
             alert(`¡Bienvenido de nuevo, ${resultado.usuario.nombre}!`);
-            
-            // Redirigimos al catálogo
             window.location.hash = "#catalogo";
         } else {
             alert("Error de autenticación: " + resultado.error);
@@ -592,6 +571,15 @@ function renderizarCarrito() {
                                 <span class="fs-5 fw-bold">Total</span>
                                 <span class="fs-5 fw-bold text-primary">${total.toFixed(2)} €</span>
                             </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-muted small">Método de pago</label>
+                                <select id="metodo-pago" class="form-select border-secondary">
+                                    <option value="VISA">💳 VISA</option>
+                                    <option value="Mastercard">💳 Mastercard</option>
+                                    <option value="PayPal">🅿️ PayPal</option>
+                                </select>
+                            </div>
                             
                             <button class="btn btn-success w-100 btn-lg mb-3" onclick="procesarPago()">
                                 <i class="bi bi-credit-card me-2"></i> Realizar Pago
@@ -607,7 +595,120 @@ function renderizarCarrito() {
     `;
 }
 
-function procesarPago() {
-    alert("Para procesar el pago y guardar el pedido en tu historial, el servidor debe validar tu sesión de usuario. Pendiente de integración con el archivo guardar_pedido.php de la Fase 4.");
-    window.location.hash = "#login";
+// DOBLE LÓGICA DE PAGO: INVITADOS VS REGISTRADOS
+async function procesarPago() {
+    if (carrito.length === 0) return alert("El carrito está vacío.");
+
+    const metodoPago = document.getElementById("metodo-pago").value;
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    const total = carrito.reduce((acc, i) => acc + (parseFloat(i.precio) * i.cantidad), 0) * 1.21;
+
+    // Caso 1: Invitado (No se guarda en BD)
+    if (!usuarioSession) {
+        alert(`¡Pago de ${total.toFixed(2)}€ procesado con éxito mediante ${metodoPago}!\n\nAl comprar como invitado, este pedido no quedará registrado en ningún historial.`);
+        carrito = [];
+        window.location.hash = "#home";
+        return;
+    }
+
+    // Caso 2: Usuario Registrado (Llamada al backend)
+    const usuario = JSON.parse(usuarioSession);
+    try {
+        const respuesta = await fetch('../backend/guardar_pedido.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuario.id, total: total, carrito: carrito })
+        });
+
+        if (respuesta.ok) {
+            alert(`¡Pago de ${total.toFixed(2)}€ procesado con éxito mediante ${metodoPago}!\nEl pedido se ha guardado en tu historial personal.`);
+            carrito = [];
+            window.location.hash = "#cuenta"; 
+        } else {
+            const res = await respuesta.json();
+            alert("Error al guardar: " + res.error);
+        }
+    } catch (e) {
+        alert("Fallo de conexión al intentar guardar tu pedido.");
+    }
+}
+
+// --- 9. HISTORIAL DE PEDIDOS ---
+async function renderizarCuenta() {
+    const contenedor = document.getElementById("cuenta");
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    
+    if (!usuarioSession) {
+        window.location.hash = "#login";
+        return;
+    }
+
+    const usuario = JSON.parse(usuarioSession);
+    contenedor.innerHTML = `<div class="container py-5 text-center"><div class="spinner-border text-primary" role="status"></div><h4 class="mt-3">Cargando tus pedidos...</h4></div>`;
+
+    try {
+        const respuesta = await fetch('../backend/obtener_pedidos.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuario.id })
+        });
+
+        const pedidos = await respuesta.json();
+
+        if (pedidos.length === 0) {
+            contenedor.innerHTML = `
+                <div class="container py-5 text-center">
+                    <i class="bi bi-box-seam text-muted" style="font-size: 4rem;"></i>
+                    <h2 class="mt-3 mb-4">Aún no has realizado ningún pedido</h2>
+                    <a href="#catalogo" class="btn btn-primary">Ir al Catálogo</a>
+                </div>
+            `;
+            return;
+        }
+
+        let pedidosHTML = pedidos.map(pedido => `
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                    <div>
+                        <span class="text-muted small">Pedido #${pedido.id}</span><br>
+                        <span class="fw-bold"><i class="bi bi-calendar-check me-1"></i> ${new Date(pedido.fecha_pedido).toLocaleDateString('es-ES')}</span>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success mb-1">${pedido.estado}</span><br>
+                        <span class="fw-bold text-primary fs-5">${parseFloat(pedido.total).toFixed(2)} €</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        ${pedido.detalles.map(det => `
+                            <li class="list-group-item d-flex align-items-center p-3 border-light">
+                                <img src="${det.imagen}" class="rounded me-3 shadow-sm" style="width: 60px; height: 60px; object-fit: contain;">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 fw-semibold">${det.nombre}</h6>
+                                    <small class="text-muted">${det.cantidad} uds. x ${parseFloat(det.precio_unitario).toFixed(2)} €</small>
+                                </div>
+                                <div class="fw-bold">
+                                    ${(det.cantidad * parseFloat(det.precio_unitario)).toFixed(2)} €
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            </div>
+        `).join('');
+
+        contenedor.innerHTML = `
+            <div class="container py-5">
+                <h2 class="mb-4 fw-bold">Historial de Mis Pedidos</h2>
+                <div class="row">
+                    <div class="col-lg-9 mx-auto">
+                        ${pedidosHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        contenedor.innerHTML = `<div class="container py-5"><div class="alert alert-danger shadow-sm">No se pudieron cargar tus pedidos en este momento.</div></div>`;
+    }
 }
