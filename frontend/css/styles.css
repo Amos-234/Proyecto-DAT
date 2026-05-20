@@ -83,15 +83,13 @@
     overflow: hidden;
 }
 
-/* Estandarizar el tamaño y arreglar el solapamiento de logos transparentes */
+/* Logos de marcas sin bordes ni sombras, fusionados con el fondo */
 .img-marca-carrusel {
     width: 220px;         
     height: 110px;        
     object-fit: contain;  
     margin: 0 auto;       
-    background-color: #ffffff; /* ¡La clave! Fondo sólido para tapar el logo anterior */
-    border-radius: 12px;       /* Bordes redondeados elegantes */
-    padding: 15px;             /* Margen interno para que el logo no toque los bordes */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra muy sutil */
+    background-color: #ffffff; /* Obligatorio para que el desvanecimiento no mezcle los logos transparentes */
+    /* Hemos eliminado el border-radius, el padding y el box-shadow */
 }
 
