@@ -25,7 +25,7 @@ async function cargarProductosYArrancar() {
 function iniciarEnrutador() {
     const enrutador = () => {
         const hash = window.location.hash || "#home";
-        
+
             if (hash === "#admin") {
                 const usuarioSession = localStorage.getItem('usuarioTelecom');
                 const usuario = usuarioSession ? JSON.parse(usuarioSession) : null;
@@ -33,9 +33,12 @@ function iniciarEnrutador() {
                 if (!usuario || usuario.rol !== 'admin') {
                     alert("Acceso denegado. No eres administrador.");
                     window.location.hash = "#home";
-                return; // Cortamos la ejecución, no se renderiza nada
+                    return; // Cortamos la ejecución, no se renderiza nada
+                }
+            renderizarAdmin();
             }
-        }
+
+    
 
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
@@ -857,5 +860,94 @@ async function renderizarCuenta() {
 
     } catch (error) {
         contenedor.innerHTML = `<div class="container py-5"><div class="alert alert-danger shadow-sm">No se pudieron cargar tus pedidos en este momento.</div></div>`;
+    }
+}
+
+// --- 11. PANEL DE ADMINISTRACIÓN ---
+async function renderizarAdmin() {
+    const contenedor = document.getElementById("admin");
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    const admin = JSON.parse(usuarioSession); 
+
+    contenedor.innerHTML = `<div class="container py-5 text-center"><div class="spinner-border text-primary" role="status"></div><h4 class="mt-3">Cargando panel de administración...</h4></div>`;
+
+    try {
+        const respuesta = await fetch('../backend/admin_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin_id: admin.id })
+        });
+
+        const pedidos = await respuesta.json();
+
+        if (!respuesta.ok) throw new Error(pedidos.error || "Error de servidor");
+
+        if (pedidos.length === 0) {
+            contenedor.innerHTML = `
+                <div class="container py-5 text-center">
+                    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                    <h2 class="mt-3">No hay pedidos registrados</h2>
+                    <p class="text-muted">Cuando los clientes realicen compras, aparecerán aquí.</p>
+                </div>`;
+            return;
+        }
+
+        let filasHTML = pedidos.map(p => {
+            const detallesStr = p.detalles.map(d => `• ${d.cantidad}x ${d.nombre}`).join('\n');
+            const badgeColor = p.estado === 'Procesando' ? 'bg-warning text-dark' : (p.estado === 'Completado' ? 'bg-success' : 'bg-secondary');
+
+            return `
+                <tr>
+                    <td class="fw-semibold">#${p.id}</td>
+                    <td>${new Date(p.fecha_pedido).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                    <td>
+                        <div class="fw-bold">${p.nombre}</div>
+                        <div class="small text-muted">${p.email}</div>
+                    </td>
+                    <td><span class="badge ${badgeColor}">${p.estado}</span></td>
+                    <td class="text-end fw-bold text-primary">${parseFloat(p.total).toFixed(2)} €</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-info" onclick="alert('Detalles del Pedido #${p.id}:\\n\\n${detallesStr}')" title="Ver artículos">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        contenedor.innerHTML = `
+            <div class="container py-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold m-0"><i class="bi bi-shield-lock text-primary me-2"></i>Monitor de Pedidos</h2>
+                    <span class="badge bg-primary fs-6">${pedidos.length} Pedidos Totales</span>
+                </div>
+                
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="ps-4">ID</th>
+                                        <th scope="col">Fecha</th>
+                                        <th scope="col">Cliente</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col" class="text-end">Total</th>
+                                        <th scope="col" class="text-end pe-4">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${filasHTML}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error(error);
+        contenedor.innerHTML = `<div class="container py-5"><div class="alert alert-danger shadow-sm"><i class="bi bi-exclamation-triangle me-2"></i> ${error.message}</div></div>`;
     }
 }
