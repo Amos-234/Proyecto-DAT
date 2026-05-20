@@ -3,9 +3,7 @@ let productos = []; // Se rellenará dinámicamente desde MySQL
 let carrito = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Iniciamos la carga asíncrona desde el Backend
     cargarProductosYArrancar();
-    // Pintamos el menú inicial según si hay sesión previa guardada
     actualizarMenuNavegacion();
 });
 
@@ -57,7 +55,7 @@ function iniciarEnrutador() {
         if (hash === "#catalogo") renderizarCatalogo();
         if (hash === "#login") renderizarLogin();
         if (hash === "#carrito") renderizarCarrito();
-        if (hash === "#cuenta") renderizarCuenta(); // AÑADIDA LA RUTA DE LA CUENTA
+        if (hash === "#cuenta") renderizarCuenta(); 
     };
 
     window.addEventListener("hashchange", enrutador);
@@ -65,7 +63,6 @@ function iniciarEnrutador() {
 }
 
 // --- 3. COMPONENTES VISUALES Y RENDERIZADO ---
-
 function generarTarjetaProducto(prod, esCarrusel = false) {
     let etiquetaOferta = '';
     let uiPrecio = `<span class="fs-5 fw-bold text-primary">${parseFloat(prod.precio).toFixed(2)} €</span>`;
@@ -143,7 +140,6 @@ function renderizarCatalogo(filtro = "Todos") {
 }
 
 // --- 4. LÓGICA DE BÚSQUEDA AVANZADA ---
-
 function mostrarSugerencias(texto) {
     const caja = document.getElementById("cajaSugerencias");
     if (!texto || texto.trim().length === 0) {
@@ -286,6 +282,47 @@ function renderizarDetalle(id) {
     `;
 }
 
+// --- FUNCIONES AUXILIARES UI (Ver contraseña y Formatear inputs) ---
+function togglePass(id, mostrar) {
+    const input = document.getElementById(id);
+    if (input) input.type = mostrar ? "text" : "password";
+}
+
+function formatearTarjeta(input) {
+    let valor = input.value.replace(/\D/g, '');
+    valor = valor.replace(/(\d{4})(?=\d)/g, '$1-'); // Añade el guion cada 4 números
+    input.value = valor;
+}
+
+function formatearFecha(input) {
+    // Limpiar: solo permitimos números
+    let valor = input.value.replace(/\D/g, ''); 
+
+    // Limitar a 4 dígitos (MMYY)
+    if (valor.length > 4) valor = valor.substring(0, 4);
+
+    // Lógica estricta de Mes (01-12)
+    if (valor.length >= 2) {
+        let mes = parseInt(valor.substring(0, 2));
+        
+        // Si el usuario escribe 0, lo dejamos esperar. Si escribe > 12, lo ajustamos a 12. Si es 00, a 01.
+        if (mes > 12) mes = 12;
+        if (mes === 0) mes = 1; 
+        valor = mes.toString().padStart(2, '0') + valor.substring(2);
+    }
+
+    // 4. Aplicar formato visual (MM/YY)
+    if (valor.length > 2) {
+        input.value = valor.substring(0, 2) + '/' + valor.substring(2, 4);
+    } else {
+        input.value = valor;
+    }
+}
+
+function formatearCVV(input) {
+    input.value = input.value.replace(/\D/g, ''); // Solo números
+}
+
 // --- 6. FORMULARIOS DE AUTENTICACIÓN (LOGIN Y REGISTRO) ---
 function renderizarLogin() {
     const contenedorLogin = document.getElementById("login");
@@ -306,7 +343,17 @@ function renderizarLogin() {
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label text-muted small">Contraseña</label>
-                                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                                    <div class="input-group">
+                                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                                        <button class="btn btn-outline-secondary" type="button" 
+                                            onmousedown="togglePass('login-password', true)" 
+                                            onmouseup="togglePass('login-password', false)" 
+                                            onmouseleave="togglePass('login-password', false)"
+                                            ontouchstart="togglePass('login-password', true)"
+                                            ontouchend="togglePass('login-password', false)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100 mb-4">Entrar</button>
                             </form>
@@ -331,10 +378,20 @@ function renderizarLogin() {
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label text-muted small">Contraseña</label>
-                                    <input type="password" id="reg-password" class="form-control" placeholder="Crea una contraseña segura" 
-                                        pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}" 
-                                        title="Debe contener al menos 8 caracteres, un número, una mayúscula, una minúscula y un símbolo especial (!@#$%^&*)" 
-                                        required>
+                                    <div class="input-group">
+                                        <input type="password" id="reg-password" class="form-control" placeholder="Crea una contraseña segura" 
+                                            pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}" 
+                                            title="Debe contener al menos 8 caracteres, un número, una mayúscula, una minúscula y un símbolo especial (!@#$%^&*)" 
+                                            required>
+                                        <button class="btn btn-outline-secondary" type="button" 
+                                            onmousedown="togglePass('reg-password', true)" 
+                                            onmouseup="togglePass('reg-password', false)" 
+                                            onmouseleave="togglePass('reg-password', false)"
+                                            ontouchstart="togglePass('reg-password', true)"
+                                            ontouchend="togglePass('reg-password', false)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-success w-100">Registrarse</button>
                             </form>
@@ -440,7 +497,6 @@ async function iniciarSesion(event) {
 }
 
 // --- 8. LÓGICA E INTERFAZ DEL CARRITO DE LA COMPRA ---
-
 function agregarAlCarrito(id) {
     const producto = productos.find(p => p.id === id);
     if (producto) {
@@ -523,7 +579,6 @@ function renderizarCarrito() {
     contenedorCarrito.innerHTML = `
         <div class="container py-5">
             <h2 class="mb-4 fw-bold">Tu Carrito de la Compra</h2>
-            
             <div class="row g-4">
                 <div class="col-lg-8">
                     <div class="card shadow-sm border-0">
@@ -574,12 +629,14 @@ function renderizarCarrito() {
 
                             <div class="mb-4">
                                 <label class="form-label text-muted small">Método de pago</label>
-                                <select id="metodo-pago" class="form-select border-secondary">
+                                <select id="metodo-pago" class="form-select border-secondary" onchange="mostrarCamposPago()">
                                     <option value="VISA">💳 VISA</option>
                                     <option value="Mastercard">💳 Mastercard</option>
                                     <option value="PayPal">🅿️ PayPal</option>
                                 </select>
                             </div>
+                            
+                            <div id="campos-pago" class="mb-4"></div>
                             
                             <button class="btn btn-success w-100 btn-lg mb-3" onclick="procesarPago()">
                                 <i class="bi bi-credit-card me-2"></i> Realizar Pago
@@ -593,25 +650,98 @@ function renderizarCarrito() {
             </div>
         </div>
     `;
+
+    mostrarCamposPago();
 }
 
-// DOBLE LÓGICA DE PAGO: INVITADOS VS REGISTRADOS
+// --- 9. FUNCIONES DE VALIDACIÓN DE PAGO ---
+function mostrarCamposPago() {
+    const metodo = document.getElementById("metodo-pago").value;
+    const contenedor = document.getElementById("campos-pago");
+    if (!contenedor) return;
+
+    if (metodo === "PayPal") {
+        contenedor.innerHTML = `
+            <input type="email" id="pago-paypal-email" class="form-control" placeholder="Correo de PayPal" required>
+        `;
+    } else {
+        contenedor.innerHTML = `
+            <input type="text" id="pago-card-num" class="form-control mb-2" placeholder="Número de tarjeta (16 dígitos)" maxlength="19" oninput="formatearTarjeta(this)" required>
+            <div class="row g-2">
+                <div class="col-6">
+                    <input type="text" id="pago-card-date" class="form-control" placeholder="MM/YY" maxlength="5" oninput="formatearFecha(this)" required>
+                </div>
+                <div class="col-6">
+                    <input type="text" id="pago-card-cvv" class="form-control" placeholder="CVV" maxlength="3" oninput="formatearCVV(this)" required>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function validarPago(metodo) {
+    if (metodo === "PayPal") {
+        const input = document.getElementById("pago-paypal-email");
+        return input ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value) : false;
+    } else {
+        const numInput = document.getElementById("pago-card-num");
+        const cvvInput = document.getElementById("pago-card-cvv");
+        const dateInput = document.getElementById("pago-card-date");
+        
+        if (!numInput || !cvvInput || !dateInput) return false;
+
+        const num = numInput.value.replace(/-/g, ''); // Quitamos guiones para validar
+        const cvv = cvvInput.value;
+        const date = dateInput.value;
+
+        // Validación: 16 números, 3 CVV, y mes 01-12 con año YY
+        const numValido = /^\d{16}$/.test(num);
+        const cvvValido = /^\d{3}$/.test(cvv);
+        const dateValido = /^(0[1-9]|1[0-2])\/\d{2}$/.test(date);
+
+        return numValido && cvvValido && dateValido;
+    }
+}
+
 async function procesarPago() {
     if (carrito.length === 0) return alert("El carrito está vacío.");
 
     const metodoPago = document.getElementById("metodo-pago").value;
-    const usuarioSession = localStorage.getItem('usuarioTelecom');
-    const total = carrito.reduce((acc, i) => acc + (parseFloat(i.precio) * i.cantidad), 0) * 1.21;
-
-    // Caso 1: Invitado (No se guarda en BD)
-    if (!usuarioSession) {
-        alert(`¡Pago de ${total.toFixed(2)}€ procesado con éxito mediante ${metodoPago}!\n\nAl comprar como invitado, este pedido no quedará registrado en ningún historial.`);
-        carrito = [];
-        window.location.hash = "#home";
+    
+    // 1. Validamos los campos dinámicos
+    if (!validarPago(metodoPago)) {
+        alert("Por favor, introduce datos de pago válidos (Ej: 16 dígitos para tarjetas o un email válido para PayPal).");
         return;
     }
 
-    // Caso 2: Usuario Registrado (Llamada al backend)
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    const total = carrito.reduce((acc, i) => acc + (parseFloat(i.precio) * i.cantidad), 0) * 1.21;
+
+    // 2. Función visual de agradecimiento
+    const mostrarGracias = () => {
+        document.querySelector("main").innerHTML = `
+            <div class="container py-5 text-center" style="min-height: 50vh; margin-top: 10vh;">
+                <div class="display-1 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
+                <h2 class="fw-bold">¡Muchas gracias por tu compra!</h2>
+                <p class="text-muted fs-5 mt-3">Hemos procesado tu pago correctamente mediante ${metodoPago}.</p>
+                <p class="small">Serás redirigido automáticamente enseguida...</p>
+                <div class="spinner-border text-success mt-3" role="status" style="width: 2rem; height: 2rem;"></div>
+            </div>
+        `;
+        // Redirigir al inicio o a cuenta tras 4 segundos
+        setTimeout(() => { 
+            window.location.hash = usuarioSession ? "#cuenta" : "#home"; 
+            location.reload(); 
+        }, 4000);
+    };
+
+    // 3. Lógica según el usuario (Invitado vs Logueado)
+    if (!usuarioSession) {
+        carrito = [];
+        mostrarGracias();
+        return;
+    }
+
     const usuario = JSON.parse(usuarioSession);
     try {
         const respuesta = await fetch('../backend/guardar_pedido.php', {
@@ -621,9 +751,8 @@ async function procesarPago() {
         });
 
         if (respuesta.ok) {
-            alert(`¡Pago de ${total.toFixed(2)}€ procesado con éxito mediante ${metodoPago}!\nEl pedido se ha guardado en tu historial personal.`);
             carrito = [];
-            window.location.hash = "#cuenta"; 
+            mostrarGracias();
         } else {
             const res = await respuesta.json();
             alert("Error al guardar: " + res.error);
@@ -633,7 +762,7 @@ async function procesarPago() {
     }
 }
 
-// --- 9. HISTORIAL DE PEDIDOS ---
+// --- 10. HISTORIAL DE PEDIDOS ---
 async function renderizarCuenta() {
     const contenedor = document.getElementById("cuenta");
     const usuarioSession = localStorage.getItem('usuarioTelecom');
