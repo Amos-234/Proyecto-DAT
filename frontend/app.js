@@ -26,6 +26,17 @@ function iniciarEnrutador() {
     const enrutador = () => {
         const hash = window.location.hash || "#home";
         
+            if (hash === "#admin") {
+                const usuarioSession = localStorage.getItem('usuarioTelecom');
+                const usuario = usuarioSession ? JSON.parse(usuarioSession) : null;
+
+                if (!usuario || usuario.rol !== 'admin') {
+                    alert("Acceso denegado. No eres administrador.");
+                    window.location.hash = "#home";
+                return; // Cortamos la ejecución, no se renderiza nada
+            }
+        }
+
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
 
