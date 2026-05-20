@@ -25,7 +25,7 @@ if (!empty($data->nombre) && !empty($data->email) && !empty($data->password)) {
         $password_hash = password_hash($data->password, PASSWORD_BCRYPT);
 
         // 3. Guardamos el usuario
-        $insert_stmt = $pdo->prepare("INSERT INTO usuarios (nombre, email, password) VALUES (:nombre, :email, :password)");
+        $insert_stmt = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, rol) VALUES (:nombre, :email, :password, 'usuario')");
         
         if ($insert_stmt->execute([':nombre' => $data->nombre, ':email' => $data->email, ':password' => $password_hash])) {
             http_response_code(201);

@@ -413,6 +413,12 @@ function actualizarMenuNavegacion() {
 
     if (usuarioSession) {
         const usuario = JSON.parse(usuarioSession);
+        
+        // Creamos la lógica del enlace de administrador
+        const adminLink = (usuario.rol === 'admin') 
+            ? '<li><a class="dropdown-item" href="#admin"><i class="bi bi-shield-lock me-2"></i> Panel Admin</a></li>' 
+            : '';
+
         contenedor.innerHTML = `
             <div class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle fw-semibold text-primary mx-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -420,6 +426,7 @@ function actualizarMenuNavegacion() {
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
                     <li><a class="dropdown-item" href="#cuenta"><i class="bi bi-box-seam me-2"></i> Mis Pedidos</a></li>
+                    ${adminLink} 
                     <li><hr class="dropdown-divider"></li>
                     <li><button class="dropdown-item text-danger small fw-semibold" onclick="cerrarSesion()"><i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión</button></li>
                 </ul>

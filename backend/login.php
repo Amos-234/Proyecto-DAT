@@ -9,8 +9,8 @@ $data = json_decode(file_get_contents("php://input"));
 
 if (!empty($data->email) && !empty($data->password)) {
     try {
-        // Buscamos al usuario por su email
-        $stmt = $pdo->prepare("SELECT id, nombre, password FROM usuarios WHERE email = :email");
+        // 1. AÑADIDO 'rol' en el SELECT
+        $stmt = $pdo->prepare("SELECT id, nombre, password, rol FROM usuarios WHERE email = :email");
         $stmt->execute([':email' => $data->email]);
         
         if ($stmt->rowCount() > 0) {
@@ -19,12 +19,14 @@ if (!empty($data->email) && !empty($data->password)) {
             // Verificamos si la contraseña coincide con el Hash guardado
             if (password_verify($data->password, $usuario['password'])) {
                 http_response_code(200);
-                // Le devolvemos al frontend los datos básicos (nunca la contraseña)
+                
+                // 2. AÑADIDO 'rol' en el array de respuesta
                 echo json_encode([
                     "mensaje" => "Login exitoso",
                     "usuario" => [
                         "id" => $usuario['id'],
-                        "nombre" => $usuario['nombre']
+                        "nombre" => $usuario['nombre'],
+                        "rol" => $usuario['rol'] 
                     ]
                 ]);
             } else {
