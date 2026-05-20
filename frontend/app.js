@@ -26,20 +26,18 @@ function iniciarEnrutador() {
     const enrutador = () => {
         const hash = window.location.hash || "#home";
 
-            if (hash === "#admin") {
-                const usuarioSession = localStorage.getItem('usuarioTelecom');
-                const usuario = usuarioSession ? JSON.parse(usuarioSession) : null;
-
-                if (!usuario || usuario.rol !== 'admin') {
-                    alert("Acceso denegado. No eres administrador.");
-                    window.location.hash = "#home";
-                    return; // Cortamos la ejecución, no se renderiza nada
-                }
-            renderizarAdmin();
+        // Guardia de acceso admin (antes de cualquier renderizado)
+        if (hash === "#admin") {
+            const usuarioSession = localStorage.getItem('usuarioTelecom');
+            const usuario = usuarioSession ? JSON.parse(usuarioSession) : null;
+            if (!usuario || usuario.rol !== 'admin') {
+                alert("Acceso denegado. No eres administrador.");
+                window.location.hash = "#home";
+                return;
             }
+        }
 
-    
-
+        // Ocultar todas las secciones
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
 
@@ -69,7 +67,8 @@ function iniciarEnrutador() {
         if (hash === "#catalogo") renderizarCatalogo();
         if (hash === "#login") renderizarLogin();
         if (hash === "#carrito") renderizarCarrito();
-        if (hash === "#cuenta") renderizarCuenta(); 
+        if (hash === "#cuenta") renderizarCuenta();
+        if (hash === "#admin") renderizarAdmin();
     };
 
     window.addEventListener("hashchange", enrutador);
@@ -87,10 +86,18 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
         uiPrecio = `<span class="text-muted text-decoration-line-through small me-2">${parseFloat(prod.precioOriginal).toFixed(2)} €</span><span class="fs-5 fw-bold text-danger">${parseFloat(prod.precio).toFixed(2)} €</span>`;
     }
 
+    // Lógica visual del botón según el stock
+    let botonCarrito = '';
+    if (prod.stock > 0) {
+        botonCarrito = `<button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito"><i class="bi bi-cart-plus"></i></button>`;
+    } else {
+        botonCarrito = `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">X</button>`;
+    }
+
     const anchoEstilo = esCarrusel ? 'style="min-width: 280px; max-width: 280px;"' : '';
 
     return `
-        <div class="card h-100 shadow-sm border-0 bg-light" ${anchoEstilo}>
+        <div class="card h-100 shadow-sm border-0 bg-light position-relative" ${anchoEstilo}>
             ${etiquetaOferta}
             <img src="${prod.imagen}" class="card-img-top p-2 rounded img-tarjeta-producto" alt="${prod.nombre}">
             <div class="card-body d-flex flex-column">
@@ -101,11 +108,12 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
                 <h5 class="card-title fs-6 fw-bold titulo-producto">${prod.nombre}</h5>
                 <p class="card-text text-muted small mb-3 flex-grow-1">${prod.descripcion.substring(0, 60)}...</p>
                 <div class="d-flex justify-content-between align-items-center mt-auto">
-                    <div>${uiPrecio}</div>
+                    <div>
+                        ${uiPrecio}
+                        <br><small class="text-muted">Stock: ${prod.stock}</small>
+                    </div>
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito">
-                            <i class="bi bi-cart-plus"></i>
-                        </button>
+                        ${botonCarrito}
                         <a href="#producto/${prod.id}" class="btn btn-sm btn-primary">Ver</a>
                     </div>
                 </div>
@@ -522,6 +530,14 @@ function agregarAlCarrito(id) {
     const producto = productos.find(p => p.id === id);
     if (producto) {
         const itemExistente = carrito.find(item => item.id === id);
+        
+        // NUEVO: Validar stock
+        const cantidadActual = itemExistente ? itemExistente.cantidad : 0;
+        if (cantidadActual + 1 > producto.stock) {
+            alert(`No puedes añadir más. Solo quedan ${producto.stock} unidades en stock.`);
+            return;
+        }
+
         if (itemExistente) {
             itemExistente.cantidad++;
         } else {
@@ -537,6 +553,15 @@ function cambiarCantidad(id, nuevaCantidad) {
         eliminarDelCarrito(id);
         return;
     }
+    
+    const productoOriginal = productos.find(p => p.id === id);
+    
+    // Validar stock en el carrito
+    if (cantidad > productoOriginal.stock) {
+        alert(`Stock insuficiente. Máximo disponible: ${productoOriginal.stock}.`);
+        return;
+    }
+
     const item = carrito.find(p => p.id === id);
     if (item) {
         item.cantidad = cantidad;
@@ -867,9 +892,66 @@ async function renderizarCuenta() {
 async function renderizarAdmin() {
     const contenedor = document.getElementById("admin");
     const usuarioSession = localStorage.getItem('usuarioTelecom');
-    const admin = JSON.parse(usuarioSession); 
+    const admin = JSON.parse(usuarioSession);
 
-    contenedor.innerHTML = `<div class="container py-5 text-center"><div class="spinner-border text-primary" role="status"></div><h4 class="mt-3">Cargando panel de administración...</h4></div>`;
+    // Pintamos la estructura de pestañas primero
+    contenedor.innerHTML = `
+        <div class="container py-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold m-0"><i class="bi bi-shield-lock text-primary me-2"></i>Panel de Administración</h2>
+                <span class="badge bg-primary fs-6">Bienvenido, ${admin.nombre.split(' ')[0]}</span>
+            </div>
+
+            <ul class="nav nav-tabs mb-4" id="adminTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" onclick="mostrarPestanaAdmin('pedidos')">
+                        <i class="bi bi-receipt me-1"></i> Pedidos
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="mostrarPestanaAdmin('productos')">
+                        <i class="bi bi-box-seam me-1"></i> Productos
+                    </button>
+                </li>
+            </ul>
+
+            <div id="admin-tab-pedidos">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <h4 class="mt-3">Cargando pedidos...</h4>
+                </div>
+            </div>
+
+            <div id="admin-tab-productos" style="display:none;">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <h4 class="mt-3">Cargando productos...</h4>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Cargamos los dos paneles en paralelo
+    cargarPedidosAdmin(admin.id);
+    cargarProductosAdmin(admin.id);
+}
+
+function mostrarPestanaAdmin(tab) {
+    document.getElementById('admin-tab-pedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
+    document.getElementById('admin-tab-productos').style.display = tab === 'productos' ? 'block' : 'none';
+
+    document.querySelectorAll('#adminTabs .nav-link').forEach((btn, i) => {
+        btn.classList.toggle('active', (tab === 'pedidos' && i === 0) || (tab === 'productos' && i === 1));
+    });
+}
+
+// --- 12. CARGAR PEDIDOS (Panel Admin) ---
+async function cargarPedidosAdmin(adminId) {
+    const contenedor = document.getElementById("admin-tab-pedidos");
+    if (!contenedor) return;
+
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    const admin = adminId ? { id: adminId } : JSON.parse(usuarioSession);
 
     try {
         const respuesta = await fetch('../backend/admin_api.php', {
@@ -879,26 +961,25 @@ async function renderizarAdmin() {
         });
 
         const pedidos = await respuesta.json();
-
         if (!respuesta.ok) throw new Error(pedidos.error || "Error de servidor");
 
         if (pedidos.length === 0) {
             contenedor.innerHTML = `
-                <div class="container py-5 text-center">
+                <div class="text-center py-5">
                     <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                    <h2 class="mt-3">No hay pedidos registrados</h2>
-                    <p class="text-muted">Cuando los clientes realicen compras, aparecerán aquí.</p>
+                    <h4 class="mt-3 text-muted">No hay pedidos registrados aún.</h4>
                 </div>`;
             return;
         }
 
         let filasHTML = pedidos.map(p => {
-            const detallesStr = p.detalles.map(d => `• ${d.cantidad}x ${d.nombre}`).join('\n');
-            const badgeColor = p.estado === 'Procesando' ? 'bg-warning text-dark' : (p.estado === 'Completado' ? 'bg-success' : 'bg-secondary');
-
+            const detallesStr = p.detalles.map(d => `• ${d.cantidad}x ${d.nombre}`).join('\\n');
+            const badgeColor = p.estado === 'Procesando' ? 'bg-warning text-dark' 
+                             : p.estado === 'Completado' ? 'bg-success' 
+                             : 'bg-secondary';
             return `
                 <tr>
-                    <td class="fw-semibold">#${p.id}</td>
+                    <td class="fw-semibold ps-4">#${p.id}</td>
                     <td>${new Date(p.fecha_pedido).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</td>
                     <td>
                         <div class="fw-bold">${p.nombre}</div>
@@ -906,48 +987,262 @@ async function renderizarAdmin() {
                     </td>
                     <td><span class="badge ${badgeColor}">${p.estado}</span></td>
                     <td class="text-end fw-bold text-primary">${parseFloat(p.total).toFixed(2)} €</td>
-                    <td class="text-end">
+                    <td class="text-end pe-4">
                         <button class="btn btn-sm btn-outline-info" onclick="alert('Detalles del Pedido #${p.id}:\\n\\n${detallesStr}')" title="Ver artículos">
                             <i class="bi bi-eye"></i>
                         </button>
                     </td>
-                </tr>
-            `;
+                </tr>`;
         }).join('');
 
         contenedor.innerHTML = `
-            <div class="container py-5">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold m-0"><i class="bi bi-shield-lock text-primary me-2"></i>Monitor de Pedidos</h2>
-                    <span class="badge bg-primary fs-6">${pedidos.length} Pedidos Totales</span>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted small">${pedidos.length} pedidos en total</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="cargarPedidosAdmin()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                </button>
+            </div>
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">ID</th>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Estado</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-end pe-4">Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody>${filasHTML}</tbody>
+                        </table>
+                    </div>
                 </div>
-                
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th scope="col" class="ps-4">ID</th>
-                                        <th scope="col">Fecha</th>
-                                        <th scope="col">Cliente</th>
-                                        <th scope="col">Estado</th>
-                                        <th scope="col" class="text-end">Total</th>
-                                        <th scope="col" class="text-end pe-4">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${filasHTML}
-                                </tbody>
-                            </table>
-                        </div>
+            </div>`;
+
+    } catch (error) {
+        contenedor.innerHTML = `<div class="alert alert-danger shadow-sm"><i class="bi bi-exclamation-triangle me-2"></i>${error.message}</div>`;
+    }
+}
+
+// --- 13. CARGAR PRODUCTOS (Panel Admin) ---
+async function cargarProductosAdmin(adminId) {
+    const contenedor = document.getElementById("admin-tab-productos");
+    if (!contenedor) return;
+
+    try {
+        const respuesta = await fetch('../backend/get_productos.php');
+        const prods = await respuesta.json();
+
+        let filasHTML = prods.map(p => `
+            <tr>
+                <td class="ps-4">
+                    <img src="${p.imagen}" style="width:45px;height:45px;object-fit:contain;" class="rounded bg-light me-2">
+                    <span class="fw-semibold">${p.nombre}</span>
+                </td>
+                <td><span class="badge bg-secondary">${p.categoria}</span></td>
+                <td>${parseFloat(p.precio).toFixed(2)} €</td>
+                <td>
+                    <div class="input-group input-group-sm" style="width:130px;">
+                        <input type="number" id="stock-${p.id}" class="form-control" value="${p.stock}" min="0">
+                        <button class="btn btn-outline-primary" onclick="actualizarStock(${p.id}, ${adminId})">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                    </div>
+                </td>
+                <td class="pe-4">
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${p.id}, ${adminId})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>`).join('');
+
+        contenedor.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted small">${prods.length} productos en catálogo</span>
+                <button class="btn btn-success btn-sm" onclick="mostrarFormularioNuevoProducto(${adminId})">
+                    <i class="bi bi-plus-lg me-1"></i>Añadir Producto
+                </button>
+            </div>
+            <div id="formulario-nuevo-producto"></div>
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Precio</th>
+                                    <th>Stock</th>
+                                    <th class="pe-4">Eliminar</th>
+                                </tr>
+                            </thead>
+                            <tbody>${filasHTML}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+
+    } catch (error) {
+        contenedor.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>No se pudieron cargar los productos.</div>`;
+    }
+}
+
+// --- 14. ACTUALIZAR STOCK ---
+async function actualizarStock(productoId, adminId) {
+    const nuevoStock = parseInt(document.getElementById(`stock-${productoId}`).value);
+    if (isNaN(nuevoStock) || nuevoStock < 0) {
+        alert("Introduce un valor de stock válido (0 o mayor).");
+        return;
+    }
+
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    const admin = adminId ? { id: adminId } : JSON.parse(usuarioSession);
+
+    try {
+        const respuesta = await fetch('../backend/admin_productos.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin_id: admin.id, accion: 'actualizar_stock', producto_id: productoId, stock: nuevoStock })
+        });
+        const res = await respuesta.json();
+        if (respuesta.ok) {
+            // Actualizar el array local
+            const prod = productos.find(p => p.id === productoId);
+            if (prod) prod.stock = nuevoStock;
+            alert(res.mensaje);
+        } else {
+            alert("Error: " + res.error);
+        }
+    } catch (e) {
+        alert("Error de conexión al actualizar el stock.");
+    }
+}
+
+// --- 15. ELIMINAR PRODUCTO ---
+async function eliminarProducto(productoId, adminId) {
+    if (!confirm("¿Seguro que quieres eliminar este producto? Esta acción no se puede deshacer.")) return;
+
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    const admin = adminId ? { id: adminId } : JSON.parse(usuarioSession);
+
+    try {
+        const respuesta = await fetch('../backend/admin_productos.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin_id: admin.id, accion: 'eliminar', producto_id: productoId })
+        });
+        const res = await respuesta.json();
+        if (respuesta.ok) {
+            productos = productos.filter(p => p.id !== productoId);
+            alert(res.mensaje);
+            cargarProductosAdmin(admin.id);
+        } else {
+            alert("Error: " + res.error);
+        }
+    } catch (e) {
+        alert("Error de conexión al eliminar el producto.");
+    }
+}
+
+// --- 16. FORMULARIO NUEVO PRODUCTO ---
+function mostrarFormularioNuevoProducto(adminId) {
+    const contenedor = document.getElementById("formulario-nuevo-producto");
+    if (!contenedor) return;
+
+    // Si ya está abierto, lo cerramos
+    if (contenedor.innerHTML.trim() !== '') {
+        contenedor.innerHTML = '';
+        return;
+    }
+
+    contenedor.innerHTML = `
+        <div class="card shadow-sm border-0 mb-4 bg-light">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-plus-circle me-2 text-success"></i>Nuevo Producto</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Nombre del producto</label>
+                        <input type="text" id="np-nombre" class="form-control" placeholder="Ej: Switch Cisco SG110" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">Marca</label>
+                        <input type="text" id="np-marca" class="form-control" placeholder="Ej: Cisco">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">Categoría</label>
+                        <input type="text" id="np-categoria" class="form-control" placeholder="Ej: Switches">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">Precio (€)</label>
+                        <input type="number" id="np-precio" class="form-control" placeholder="0.00" min="0" step="0.01">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">Stock inicial</label>
+                        <input type="number" id="np-stock" class="form-control" placeholder="0" min="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">URL de imagen</label>
+                        <input type="text" id="np-imagen" class="form-control" placeholder="https://...">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small">Descripción</label>
+                        <textarea id="np-descripcion" class="form-control" rows="2" placeholder="Descripción breve del producto..."></textarea>
+                    </div>
+                    <div class="col-12 d-flex gap-2 justify-content-end">
+                        <button class="btn btn-outline-secondary" onclick="document.getElementById('formulario-nuevo-producto').innerHTML=''">
+                            Cancelar
+                        </button>
+                        <button class="btn btn-success" onclick="guardarNuevoProducto(${adminId})">
+                            <i class="bi bi-check-lg me-1"></i>Guardar Producto
+                        </button>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
+}
 
-    } catch (error) {
-        console.error(error);
-        contenedor.innerHTML = `<div class="container py-5"><div class="alert alert-danger shadow-sm"><i class="bi bi-exclamation-triangle me-2"></i> ${error.message}</div></div>`;
+// --- 17. GUARDAR NUEVO PRODUCTO ---
+async function guardarNuevoProducto(adminId) {
+    const nombre     = document.getElementById('np-nombre')?.value.trim();
+    const marca      = document.getElementById('np-marca')?.value.trim();
+    const categoria  = document.getElementById('np-categoria')?.value.trim();
+    const precio     = parseFloat(document.getElementById('np-precio')?.value);
+    const stock      = parseInt(document.getElementById('np-stock')?.value);
+    const imagen     = document.getElementById('np-imagen')?.value.trim();
+    const descripcion = document.getElementById('np-descripcion')?.value.trim();
+
+    if (!nombre || !marca || !categoria || isNaN(precio) || isNaN(stock)) {
+        alert("Por favor, rellena todos los campos obligatorios (nombre, marca, categoría, precio y stock).");
+        return;
+    }
+
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    const admin = adminId ? { id: adminId } : JSON.parse(usuarioSession);
+
+    try {
+        const respuesta = await fetch('../backend/admin_productos.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                admin_id: admin.id,
+                accion: 'añadir',
+                nombre, marca, categoria, precio, stock, imagen, descripcion
+            })
+        });
+        const res = await respuesta.json();
+        if (respuesta.ok) {
+            alert(res.mensaje);
+            document.getElementById('formulario-nuevo-producto').innerHTML = '';
+            cargarProductosAdmin(admin.id);
+        } else {
+            alert("Error: " + res.error);
+        }
+    } catch (e) {
+        alert("Error de conexión al guardar el producto.");
     }
 }
