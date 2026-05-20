@@ -1,6 +1,6 @@
 
 .icono_Telecom {
-  width: 50px;  /* Ajusta el ancho a tu gusto */
+  width: 50px;  /* */
   height: auto; /* Mantiene la proporción */
   display: block;
 }
@@ -38,14 +38,14 @@
     background-color: #f8f9fa; /* Gris muy clarito de Bootstrap */
 }
 
-/* Estilos interactivos para el footer profesional */
+/* Estilos interactivos para el footer*/
 .footer-link {
     transition: color 0.2s ease-in-out, padding-left 0.2s ease-in-out;
 }
 
 .footer-link:hover {
     color: #ffffff !important; /* Pasa de gris tenue a blanco brillante */
-    padding-left: 4px; /* Hace un sutil efecto de desplazamiento hacia la derecha */
+    padding-left: 4px; /* Efecto de desplazamiento hacia la derecha */
 }
 
 .footer-icon-link {
@@ -61,14 +61,14 @@
 /* Fuerza a que todas las imágenes compartan la misma altura exacta */
 .img-tarjeta-producto {
     width: 100%;           /* Ocupa todo el ancho disponible de la tarjeta */
-    height: 160px;         /* Altura fija ideal para carrusel y catálogo */
-    object-fit: contain;   /* Mantiene la proporción sin deformar el hardware */
+    height: 160px;         /* Altura fija para carrusel y catálogo */
+    object-fit: contain;
     background-color: #ffffff; 
 }
 
 /* Estandarizar la altura de los títulos a 2 líneas */
 .titulo-producto {
-    min-height: 48px; /* Fuerza el espacio vertical de 2 líneas (ajusta si es necesario) */
+    min-height: 48px; /* Fuerza el espacio vertical de 2 líneas */
     display: -webkit-box;
     -webkit-line-clamp: 2; /* Si el texto supera las 2 líneas, pone puntos suspensivos */
     line-clamp: 2;
