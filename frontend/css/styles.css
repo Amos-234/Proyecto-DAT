@@ -39,6 +39,12 @@
     background-color: #f8f9fa; /* Gris muy clarito de Bootstrap */
 }
 
+/* Fondo azul empresarial para el footer principal */
+#footer-principal {
+    background-color: #0a1f44; /* Azul marino corporativo profundo */
+    border-color: rgba(255, 255, 255, 0.1) !important; /* Línea divisoria superior suave y adaptada al azul */
+}
+
 /* Estilos interactivos para el footer*/
 .footer-link {
     transition: color 0.2s ease-in-out, padding-left 0.2s ease-in-out;
@@ -55,8 +61,8 @@
 }
 
 .footer-icon-link:hover {
-    color: #0d6efd !important; /* Cambia al azul primario de Bootstrap en hover */
-    transform: translateY(-3px); /* Pequeño salto hacia arriba */
+    color: #0dcaf0 !important; /* Cambia a un celeste brillante (Bootstrap info) muy visible sobre el azul oscuro */
+    transform: translateY(-3px);
 }
 
 /* Fuerza a que todas las imágenes compartan la misma altura exacta */
@@ -77,10 +83,15 @@
     overflow: hidden;
 }
 
-/* Estandarizar el tamaño de los logos de marcas en la página principal */
+/* Estandarizar el tamaño y arreglar el solapamiento de logos transparentes */
 .img-marca-carrusel {
-    width: 200px;         /* Ancho fijo para la zona del logo */
-    height: 100px;        /* Alto fijo para la zona del logo */
-    object-fit: contain;  /* Mantiene la proporción sin estirar la imagen */
-    margin: 0 auto;       /* Centra la imagen perfectamente en el medio */
+    width: 220px;         
+    height: 110px;        
+    object-fit: contain;  
+    margin: 0 auto;       
+    background-color: #ffffff; /* ¡La clave! Fondo sólido para tapar el logo anterior */
+    border-radius: 12px;       /* Bordes redondeados elegantes */
+    padding: 15px;             /* Margen interno para que el logo no toque los bordes */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra muy sutil */
 }
+
