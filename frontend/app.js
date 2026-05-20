@@ -37,6 +37,14 @@ function iniciarEnrutador() {
             }
         }
 
+        // Guardia para rutas que requieren login
+        if (hash === "#perfil" || hash === "#cuenta") {
+            if (!localStorage.getItem('usuarioTelecom')) {
+                window.location.hash = "#login";
+                return;
+            }
+        }
+
         // Ocultar todas las secciones
         const secciones = document.querySelectorAll("main > section");
         secciones.forEach(seccion => seccion.style.display = "none");
@@ -69,6 +77,7 @@ function iniciarEnrutador() {
         if (hash === "#carrito") renderizarCarrito();
         if (hash === "#cuenta") renderizarCuenta();
         if (hash === "#admin") renderizarAdmin();
+        if (hash === "#perfil") renderizarPerfil();
     };
 
     window.addEventListener("hashchange", enrutador);
@@ -91,7 +100,7 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
     if (prod.stock > 0) {
         botonCarrito = `<button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito"><i class="bi bi-cart-plus"></i></button>`;
     } else {
-        botonCarrito = `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">X</button>`;
+        botonCarrito = `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">Agotado</button>`;
     }
 
     const anchoEstilo = esCarrusel ? 'style="min-width: 280px; max-width: 280px;"' : '';
@@ -398,6 +407,27 @@ function renderizarLogin() {
                                     <label class="form-label text-muted small">Correo electrónico</label>
                                     <input type="email" id="reg-email" class="form-control" placeholder="ejemplo@correo.com" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Teléfono de contacto <span class="text-muted">(opcional)</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                        <input type="tel" id="reg-telefono" class="form-control" placeholder="+34 600 000 000">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Dirección de envío <span class="text-muted">(opcional)</span></label>
+                                    <input type="text" id="reg-direccion" class="form-control" placeholder="Calle, número, piso...">
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-5">
+                                        <label class="form-label text-muted small">Código postal</label>
+                                        <input type="text" id="reg-cp" class="form-control" placeholder="07001" maxlength="5">
+                                    </div>
+                                    <div class="col-7">
+                                        <label class="form-label text-muted small">Ciudad</label>
+                                        <input type="text" id="reg-ciudad" class="form-control" placeholder="Palma">
+                                    </div>
+                                </div>
                                 <div class="mb-4">
                                     <label class="form-label text-muted small">Contraseña</label>
                                     <div class="input-group">
@@ -414,6 +444,7 @@ function renderizarLogin() {
                                             <i class="bi bi-eye"></i>
                                         </button>
                                     </div>
+                                    <div class="form-text">Mínimo 8 caracteres, mayúscula, número y símbolo.</div>
                                 </div>
                                 <button type="submit" class="btn btn-success w-100">Registrarse</button>
                             </form>
@@ -448,6 +479,7 @@ function actualizarMenuNavegacion() {
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
                     <li><a class="dropdown-item" href="#cuenta"><i class="bi bi-box-seam me-2"></i> Mis Pedidos</a></li>
+                    <li><a class="dropdown-item" href="#perfil"><i class="bi bi-person-gear me-2"></i> Mi Cuenta</a></li>
                     ${adminLink} 
                     <li><hr class="dropdown-divider"></li>
                     <li><button class="dropdown-item text-danger small fw-semibold" onclick="cerrarSesion()"><i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión</button></li>
@@ -471,15 +503,29 @@ function cerrarSesion() {
 async function registrarUsuario(event) {
     event.preventDefault();
 
-    const nombre = document.getElementById('reg-nombre').value;
-    const email = document.getElementById('reg-email').value;
-    const password = document.getElementById('reg-password').value;
+    const nombre    = document.getElementById('reg-nombre').value.trim();
+    const email     = document.getElementById('reg-email').value.trim();
+    const password  = document.getElementById('reg-password').value;
+    const telefono  = document.getElementById('reg-telefono')?.value.trim() || '';
+    const direccion = document.getElementById('reg-direccion')?.value.trim() || '';
+    const cp        = document.getElementById('reg-cp')?.value.trim() || '';
+    const ciudad    = document.getElementById('reg-ciudad')?.value.trim() || '';
+
+    // Validación de teléfono si lo rellenan
+    if (telefono && !/^\+?[\d\s\-]{7,15}$/.test(telefono)) {
+        alert('El formato del teléfono no es válido (ej: +34 600 000 000).');
+        return;
+    }
+    if (cp && !/^\d{4,5}$/.test(cp)) {
+        alert('El código postal debe tener 4 o 5 dígitos.');
+        return;
+    }
 
     try {
         const respuesta = await fetch('../backend/registro.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, email, password })
+            body: JSON.stringify({ nombre, email, password, telefono, direccion, codigo_postal: cp, ciudad })
         });
 
         const resultado = await respuesta.json();
@@ -1244,5 +1290,265 @@ async function guardarNuevoProducto(adminId) {
         }
     } catch (e) {
         alert("Error de conexión al guardar el producto.");
+    }
+}
+// --- 18. PERFIL DE USUARIO ---
+async function renderizarPerfil() {
+    const contenedor = document.getElementById("perfil");
+    if (!contenedor) return;
+
+    const usuarioSesion = JSON.parse(localStorage.getItem('usuarioTelecom'));
+
+    // 1. Ponemos un spinner de carga para que el usuario sepa que estamos obteniendo sus datos
+    contenedor.innerHTML = `
+        <div class="container py-5 text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-3 text-muted">Cargando tus datos...</p>
+        </div>
+    `;
+
+    try {
+        // 2. Pedimos los datos reales y actualizados a la base de datos
+        const respuesta = await fetch('../backend/obtener_perfil.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuarioSesion.id })
+        });
+
+        if (!respuesta.ok) throw new Error("No se pudo cargar el perfil");
+        
+        // 3. Este es el usuario con todos los campos (teléfono, dirección, etc.)
+        const usuarioDB = await respuesta.json();
+
+        // (Opcional) Sincronizamos el localStorage por si hay discrepancias
+        localStorage.setItem('usuarioTelecom', JSON.stringify(usuarioDB));
+
+        // 4. Renderizamos el formulario inyectando los datos de la BD en el atributo "value"
+        contenedor.innerHTML = `
+            <div class="container py-5" style="max-width: 680px;">
+                <div class="mb-5">
+                    <h2 class="fw-bold mb-1"><i class="bi bi-person-gear text-primary me-2"></i>Mi Cuenta</h2>
+                    <p class="text-muted mb-0">Gestiona tus datos personales y credenciales de acceso.</p>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4"><i class="bi bi-person me-2 text-primary"></i>Datos Personales</h5>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Nombre completo</label>
+                            <input type="text" id="perfil-nombre" class="form-control" value="${usuarioDB.nombre || ''}" minlength="3" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small">Correo electrónico</label>
+                            <input type="email" id="perfil-email" class="form-control" value="${usuarioDB.email || ''}" required>
+                        </div>
+                        <button class="btn btn-primary" onclick="guardarDatosPersonales()">
+                            <i class="bi bi-check-lg me-1"></i>Guardar cambios
+                        </button>
+                        <div id="msg-datos" class="mt-3"></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4"><i class="bi bi-geo-alt me-2 text-primary"></i>Contacto y Dirección de Envío</h5>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Teléfono de contacto</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" id="perfil-telefono" class="form-control" value="${usuarioDB.telefono || ''}" placeholder="+34 600 000 000">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Dirección</label>
+                            <input type="text" id="perfil-direccion" class="form-control" value="${usuarioDB.direccion || ''}" placeholder="Calle, número, piso...">
+                        </div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-5">
+                                <label class="form-label text-muted small">Código postal</label>
+                                <input type="text" id="perfil-cp" class="form-control" value="${usuarioDB.codigo_postal || ''}" placeholder="07001" maxlength="5">
+                            </div>
+                            <div class="col-7">
+                                <label class="form-label text-muted small">Ciudad</label>
+                                <input type="text" id="perfil-ciudad" class="form-control" value="${usuarioDB.ciudad || ''}" placeholder="Palma">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="guardarDireccion()">
+                            <i class="bi bi-check-lg me-1"></i>Guardar cambios
+                        </button>
+                        <div id="msg-direccion" class="mt-3"></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4"><i class="bi bi-lock me-2 text-primary"></i>Cambiar Contraseña</h5>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Contraseña actual</label>
+                            <div class="input-group">
+                                <input type="password" id="perfil-pass-actual" class="form-control" placeholder="••••••••">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onmousedown="togglePass('perfil-pass-actual', true)"
+                                    onmouseup="togglePass('perfil-pass-actual', false)"
+                                    onmouseleave="togglePass('perfil-pass-actual', false)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Nueva contraseña</label>
+                            <div class="input-group">
+                                <input type="password" id="perfil-pass-nueva" class="form-control" placeholder="••••••••"
+                                    pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}"
+                                    title="Mínimo 8 caracteres, una mayúscula, un número y un símbolo (!@#$%^&*)">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onmousedown="togglePass('perfil-pass-nueva', true)"
+                                    onmouseup="togglePass('perfil-pass-nueva', false)"
+                                    onmouseleave="togglePass('perfil-pass-nueva', false)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Mínimo 8 caracteres, mayúscula, número y símbolo.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small">Repetir nueva contraseña</label>
+                            <input type="password" id="perfil-pass-repetir" class="form-control" placeholder="••••••••">
+                        </div>
+                        <button class="btn btn-primary" onclick="guardarContrasena()">
+                            <i class="bi bi-check-lg me-1"></i>Cambiar contraseña
+                        </button>
+                        <div id="msg-password" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        contenedor.innerHTML = `<div class="container py-5"><div class="alert alert-danger shadow-sm">No se pudieron cargar los datos de tu perfil en este momento. Inténtalo más tarde.</div></div>`;
+        console.error(e);
+    }
+}
+
+// --- HELPERS DE FEEDBACK ---
+function mostrarMensajePerfil(idContenedor, tipo, texto) {
+    const el = document.getElementById(idContenedor);
+    if (!el) return;
+    el.innerHTML = `<div class="alert alert-${tipo} py-2 px-3 small mb-0"><i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-1"></i>${texto}</div>`;
+    setTimeout(() => { el.innerHTML = ''; }, 4000);
+}
+
+// --- GUARDAR DATOS PERSONALES ---
+async function guardarDatosPersonales() {
+    const usuario = JSON.parse(localStorage.getItem('usuarioTelecom'));
+    const nombre = document.getElementById('perfil-nombre')?.value.trim();
+    const email  = document.getElementById('perfil-email')?.value.trim();
+
+    if (!nombre || nombre.length < 3) {
+        mostrarMensajePerfil('msg-datos', 'warning', 'El nombre debe tener al menos 3 caracteres.');
+        return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        mostrarMensajePerfil('msg-datos', 'warning', 'El formato del email no es válido.');
+        return;
+    }
+
+    try {
+        const respuesta = await fetch('../backend/actualizar_perfil.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuario.id, accion: 'datos_personales', nombre, email })
+        });
+        const res = await respuesta.json();
+        if (respuesta.ok) {
+            // Actualizar sesión local
+            usuario.nombre = nombre;
+            usuario.email  = email;
+            localStorage.setItem('usuarioTelecom', JSON.stringify(usuario));
+            actualizarMenuNavegacion();
+            mostrarMensajePerfil('msg-datos', 'success', '¡Datos actualizados correctamente!');
+        } else {
+            mostrarMensajePerfil('msg-datos', 'danger', res.error || 'Error al guardar los datos.');
+        }
+    } catch (e) {
+        mostrarMensajePerfil('msg-datos', 'danger', 'Error de conexión con el servidor.');
+    }
+}
+
+// --- GUARDAR DIRECCIÓN ---
+async function guardarDireccion() {
+    const usuario   = JSON.parse(localStorage.getItem('usuarioTelecom'));
+    const telefono  = document.getElementById('perfil-telefono')?.value.trim();
+    const direccion = document.getElementById('perfil-direccion')?.value.trim();
+    const cp        = document.getElementById('perfil-cp')?.value.trim();
+    const ciudad    = document.getElementById('perfil-ciudad')?.value.trim();
+
+    if (telefono && !/^\+?[\d\s\-]{7,15}$/.test(telefono)) {
+        mostrarMensajePerfil('msg-direccion', 'warning', 'El formato del teléfono no es válido (ej: +34 600 000 000).');
+        return;
+    }
+    if (cp && !/^\d{4,5}$/.test(cp)) {
+        mostrarMensajePerfil('msg-direccion', 'warning', 'El código postal debe tener 4 o 5 dígitos.');
+        return;
+    }
+
+    try {
+        const respuesta = await fetch('../backend/actualizar_perfil.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuario.id, accion: 'direccion', telefono, direccion, codigo_postal: cp, ciudad })
+        });
+        const res = await respuesta.json();
+        if (respuesta.ok) {
+            usuario.telefono      = telefono;
+            usuario.direccion     = direccion;
+            usuario.codigo_postal = cp;
+            usuario.ciudad        = ciudad;
+            localStorage.setItem('usuarioTelecom', JSON.stringify(usuario));
+            mostrarMensajePerfil('msg-direccion', 'success', '¡Contacto y dirección guardados correctamente!');
+        } else {
+            mostrarMensajePerfil('msg-direccion', 'danger', res.error || 'Error al guardar los datos.');
+        }
+    } catch (e) {
+        mostrarMensajePerfil('msg-direccion', 'danger', 'Error de conexión con el servidor.');
+    }
+}
+
+// --- CAMBIAR CONTRASEÑA ---
+async function guardarContrasena() {
+    const usuario     = JSON.parse(localStorage.getItem('usuarioTelecom'));
+    const actual      = document.getElementById('perfil-pass-actual')?.value;
+    const nueva       = document.getElementById('perfil-pass-nueva')?.value;
+    const repetir     = document.getElementById('perfil-pass-repetir')?.value;
+
+    if (!actual || !nueva || !repetir) {
+        mostrarMensajePerfil('msg-password', 'warning', 'Rellena todos los campos de contraseña.');
+        return;
+    }
+    if (nueva !== repetir) {
+        mostrarMensajePerfil('msg-password', 'warning', 'La nueva contraseña y su repetición no coinciden.');
+        return;
+    }
+    const patronSeguro = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+    if (!patronSeguro.test(nueva)) {
+        mostrarMensajePerfil('msg-password', 'warning', 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un símbolo (!@#$%^&*).');
+        return;
+    }
+
+    try {
+        const respuesta = await fetch('../backend/actualizar_perfil.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuario.id, accion: 'password', password_actual: actual, password_nueva: nueva })
+        });
+        const res = await respuesta.json();
+        if (respuesta.ok) {
+            document.getElementById('perfil-pass-actual').value  = '';
+            document.getElementById('perfil-pass-nueva').value   = '';
+            document.getElementById('perfil-pass-repetir').value = '';
+            mostrarMensajePerfil('msg-password', 'success', '¡Contraseña actualizada correctamente!');
+        } else {
+            mostrarMensajePerfil('msg-password', 'danger', res.error || 'Error al cambiar la contraseña.');
+        }
+    } catch (e) {
+        mostrarMensajePerfil('msg-password', 'danger', 'Error de conexión con el servidor.');
     }
 }
