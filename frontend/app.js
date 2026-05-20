@@ -1,6 +1,9 @@
 // --- ESTADO GLOBAL ---
 let productos = []; // Se rellenará dinámicamente desde MySQL
 let carrito = [];
+let adminPedidosGlobal = [];   // NUEVO: Para el buscador de pedidos
+let adminProductosGlobal = []; // NUEVO: Para el buscador de productos
+let idAdminActivo = null;      // NUEVO: Guarda el ID del administrador
 
 document.addEventListener("DOMContentLoaded", () => {
     cargarProductosYArrancar();
@@ -939,8 +942,8 @@ async function renderizarAdmin() {
     const contenedor = document.getElementById("admin");
     const usuarioSession = localStorage.getItem('usuarioTelecom');
     const admin = JSON.parse(usuarioSession);
+    idAdminActivo = admin.id; // Guardamos el ID para usarlo en los botones
 
-    // Pintamos la estructura de pestañas primero
     contenedor.innerHTML = `
         <div class="container py-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -962,179 +965,229 @@ async function renderizarAdmin() {
             </ul>
 
             <div id="admin-tab-pedidos">
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <h4 class="mt-3">Cargando pedidos...</h4>
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <span id="contador-pedidos" class="text-muted small">Cargando...</span>
+                    
+                    <div class="input-group shadow-sm" style="max-width: 350px;">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por ID, cliente, email o estado..." oninput="filtrarPedidosAdmin(this.value)">
+                    </div>
+
+                    <button class="btn btn-sm btn-outline-secondary shadow-sm" onclick="cargarPedidosAdmin()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                    </button>
+                </div>
+                
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">ID</th>
+                                        <th>Fecha</th>
+                                        <th>Cliente</th>
+                                        <th>Estado</th>
+                                        <th class="text-end">Total</th>
+                                        <th class="text-end pe-4">Detalle</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-admin-pedidos">
+                                    <tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="admin-tab-productos" style="display:none;">
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <h4 class="mt-3">Cargando productos...</h4>
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <span id="contador-productos" class="text-muted small">Cargando...</span>
+                    
+                    <div class="input-group shadow-sm" style="max-width: 350px;">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, categoría o marca..." oninput="filtrarProductosAdmin(this.value)">
+                    </div>
+
+                    <button class="btn btn-success btn-sm shadow-sm" onclick="mostrarFormularioNuevoProducto(idAdminActivo)">
+                        <i class="bi bi-plus-lg me-1"></i>Añadir Producto
+                    </button>
+                </div>
+                
+                <div id="formulario-nuevo-producto"></div>
+                
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Producto</th>
+                                        <th>Categoría</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th class="pe-4">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-admin-productos">
+                                    <tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     `;
 
-    // Cargamos los dos paneles en paralelo
     cargarPedidosAdmin(admin.id);
     cargarProductosAdmin(admin.id);
 }
 
 function mostrarPestanaAdmin(tab) {
-    document.getElementById('admin-tab-pedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
-    document.getElementById('admin-tab-productos').style.display = tab === 'productos' ? 'block' : 'none';
+    const tabPedidos = document.getElementById('admin-tab-pedidos');
+    const tabProductos = document.getElementById('admin-tab-productos');
+    
+    // Mostramos u ocultamos los contenedores según la pestaña elegida
+    if (tabPedidos) tabPedidos.style.display = tab === 'pedidos' ? 'block' : 'none';
+    if (tabProductos) tabProductos.style.display = tab === 'productos' ? 'block' : 'none';
 
+    // Actualizamos visualmente qué botón está "activo" (iluminado) en el menú
     document.querySelectorAll('#adminTabs .nav-link').forEach((btn, i) => {
         btn.classList.toggle('active', (tab === 'pedidos' && i === 0) || (tab === 'productos' && i === 1));
     });
 }
 
-// --- 12. CARGAR PEDIDOS (Panel Admin) ---
-async function cargarPedidosAdmin(adminId) {
-    const contenedor = document.getElementById("admin-tab-pedidos");
-    if (!contenedor) return;
 
-    const usuarioSession = localStorage.getItem('usuarioTelecom');
-    const admin = adminId ? { id: adminId } : JSON.parse(usuarioSession);
+// --- 12. CARGAR Y FILTRAR PEDIDOS (Panel Admin) ---
+async function cargarPedidosAdmin(adminId) {
+    const aId = adminId || idAdminActivo;
+    const tbody = document.getElementById("tbody-admin-pedidos");
+    if (!tbody) return;
 
     try {
         const respuesta = await fetch('../backend/admin_api.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ admin_id: admin.id })
+            body: JSON.stringify({ admin_id: aId })
         });
 
-        const pedidos = await respuesta.json();
-        if (!respuesta.ok) throw new Error(pedidos.error || "Error de servidor");
+        adminPedidosGlobal = await respuesta.json();
+        if (!respuesta.ok) throw new Error(adminPedidosGlobal.error || "Error de servidor");
 
-        if (pedidos.length === 0) {
-            contenedor.innerHTML = `
-                <div class="text-center py-5">
-                    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                    <h4 class="mt-3 text-muted">No hay pedidos registrados aún.</h4>
-                </div>`;
-            return;
-        }
-
-        let filasHTML = pedidos.map(p => {
-            const detallesStr = p.detalles.map(d => `• ${d.cantidad}x ${d.nombre}`).join('\\n');
-            const badgeColor = p.estado === 'Procesando' ? 'bg-warning text-dark' 
-                             : p.estado === 'Completado' ? 'bg-success' 
-                             : 'bg-secondary';
-            return `
-                <tr>
-                    <td class="fw-semibold ps-4">#${p.id}</td>
-                    <td>${new Date(p.fecha_pedido).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                    <td>
-                        <div class="fw-bold">${p.nombre}</div>
-                        <div class="small text-muted">${p.email}</div>
-                    </td>
-                    <td><span class="badge ${badgeColor}">${p.estado}</span></td>
-                    <td class="text-end fw-bold text-primary">${parseFloat(p.total).toFixed(2)} €</td>
-                    <td class="text-end pe-4">
-                        <button class="btn btn-sm btn-outline-info" onclick="alert('Detalles del Pedido #${p.id}:\\n\\n${detallesStr}')" title="Ver artículos">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </td>
-                </tr>`;
-        }).join('');
-
-        contenedor.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-muted small">${pedidos.length} pedidos en total</span>
-                <button class="btn btn-sm btn-outline-secondary" onclick="cargarPedidosAdmin()">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
-                </button>
-            </div>
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4">ID</th>
-                                    <th>Fecha</th>
-                                    <th>Cliente</th>
-                                    <th>Estado</th>
-                                    <th class="text-end">Total</th>
-                                    <th class="text-end pe-4">Detalle</th>
-                                </tr>
-                            </thead>
-                            <tbody>${filasHTML}</tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>`;
+        filtrarPedidosAdmin(""); // Mostramos todos por defecto al cargar
 
     } catch (error) {
-        contenedor.innerHTML = `<div class="alert alert-danger shadow-sm"><i class="bi bi-exclamation-triangle me-2"></i>${error.message}</div>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>${error.message}</td></tr>`;
+        document.getElementById("contador-pedidos").innerText = "Error";
     }
 }
 
-// --- 13. CARGAR PRODUCTOS (Panel Admin) ---
-async function cargarProductosAdmin(adminId) {
-    const contenedor = document.getElementById("admin-tab-productos");
-    if (!contenedor) return;
+function filtrarPedidosAdmin(texto) {
+    const tbody = document.getElementById("tbody-admin-pedidos");
+    if (!tbody) return;
+
+    const termino = texto.toLowerCase().trim();
+    
+    // Filtramos cruzando datos: ID, Nombre, Email o Estado
+    const filtrados = adminPedidosGlobal.filter(p => 
+        p.id.toString().includes(termino) ||
+        p.nombre.toLowerCase().includes(termino) ||
+        p.email.toLowerCase().includes(termino) ||
+        p.estado.toLowerCase().includes(termino)
+    );
+
+    document.getElementById("contador-pedidos").innerText = `${filtrados.length} pedidos encontrados`;
+
+    if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-inbox fs-1 d-block mb-3"></i>No se encontraron pedidos con "${texto}".</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtrados.map(p => {
+        const detallesStr = p.detalles.map(d => `• ${d.cantidad}x ${d.nombre}`).join('\\n');
+        const badgeColor = p.estado === 'Procesando' ? 'bg-warning text-dark' 
+                         : p.estado === 'Completado' ? 'bg-success' 
+                         : 'bg-secondary';
+        return `
+            <tr>
+                <td class="fw-semibold ps-4">#${p.id}</td>
+                <td>${new Date(p.fecha_pedido).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                <td>
+                    <div class="fw-bold">${p.nombre}</div>
+                    <div class="small text-muted">${p.email}</div>
+                </td>
+                <td><span class="badge ${badgeColor}">${p.estado}</span></td>
+                <td class="text-end fw-bold text-primary">${parseFloat(p.total).toFixed(2)} €</td>
+                <td class="text-end pe-4">
+                    <button class="btn btn-sm btn-outline-info" onclick="alert('Detalles del Pedido #${p.id}:\\n\\n${detallesStr}')" title="Ver artículos">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </td>
+            </tr>`;
+    }).join('');
+}
+
+// --- 13. CARGAR Y FILTRAR PRODUCTOS (Panel Admin) ---
+async function cargarProductosAdmin() {
+    const tbody = document.getElementById("tbody-admin-productos");
+    if (!tbody) return;
 
     try {
         const respuesta = await fetch('../backend/get_productos.php');
-        const prods = await respuesta.json();
-
-        let filasHTML = prods.map(p => `
-            <tr>
-                <td class="ps-4">
-                    <img src="${p.imagen}" style="width:45px;height:45px;object-fit:contain;" class="rounded bg-light me-2">
-                    <span class="fw-semibold">${p.nombre}</span>
-                </td>
-                <td><span class="badge bg-secondary">${p.categoria}</span></td>
-                <td>${parseFloat(p.precio).toFixed(2)} €</td>
-                <td>
-                    <div class="input-group input-group-sm" style="width:130px;">
-                        <input type="number" id="stock-${p.id}" class="form-control" value="${p.stock}" min="0">
-                        <button class="btn btn-outline-primary" onclick="actualizarStock(${p.id}, ${adminId})">
-                            <i class="bi bi-check-lg"></i>
-                        </button>
-                    </div>
-                </td>
-                <td class="pe-4">
-                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${p.id}, ${adminId})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>`).join('');
-
-        contenedor.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-muted small">${prods.length} productos en catálogo</span>
-                <button class="btn btn-success btn-sm" onclick="mostrarFormularioNuevoProducto(${adminId})">
-                    <i class="bi bi-plus-lg me-1"></i>Añadir Producto
-                </button>
-            </div>
-            <div id="formulario-nuevo-producto"></div>
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4">Producto</th>
-                                    <th>Categoría</th>
-                                    <th>Precio</th>
-                                    <th>Stock</th>
-                                    <th class="pe-4">Eliminar</th>
-                                </tr>
-                            </thead>
-                            <tbody>${filasHTML}</tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>`;
+        adminProductosGlobal = await respuesta.json();
+        
+        filtrarProductosAdmin(""); // Mostramos todos al iniciar
 
     } catch (error) {
-        contenedor.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>No se pudieron cargar los productos.</div>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>No se pudieron cargar los productos.</td></tr>`;
+        document.getElementById("contador-productos").innerText = "Error";
     }
+}
+
+function filtrarProductosAdmin(texto) {
+    const tbody = document.getElementById("tbody-admin-productos");
+    if (!tbody) return;
+
+    const termino = texto.toLowerCase().trim();
+    
+    // Filtramos cruzando datos: Nombre, Categoría o Marca
+    const filtrados = adminProductosGlobal.filter(p => 
+        p.nombre.toLowerCase().includes(termino) ||
+        p.categoria.toLowerCase().includes(termino) ||
+        (p.marca && p.marca.toLowerCase().includes(termino))
+    );
+
+    document.getElementById("contador-productos").innerText = `${filtrados.length} productos en catálogo`;
+
+    if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5"><i class="bi bi-box-seam fs-1 d-block mb-3"></i>No hay productos que coincidan con "${texto}".</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtrados.map(p => `
+        <tr>
+            <td class="ps-4">
+                <img src="${p.imagen}" style="width:45px;height:45px;object-fit:contain;" class="rounded bg-light me-2">
+                <span class="fw-semibold">${p.nombre}</span>
+            </td>
+            <td><span class="badge bg-secondary">${p.categoria}</span></td>
+            <td>${parseFloat(p.precio).toFixed(2)} €</td>
+            <td>
+                <div class="input-group input-group-sm" style="width:130px;">
+                    <input type="number" id="stock-${p.id}" class="form-control" value="${p.stock}" min="0">
+                    <button class="btn btn-outline-primary" onclick="actualizarStock(${p.id}, idAdminActivo)">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                </div>
+            </td>
+            <td class="pe-4">
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${p.id}, idAdminActivo)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>`).join('');
 }
 
 // --- 14. ACTUALIZAR STOCK ---
