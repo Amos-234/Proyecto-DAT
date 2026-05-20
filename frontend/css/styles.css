@@ -76,3 +76,11 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+/* Estandarizar el tamaño de los logos de marcas en la página principal */
+.img-marca-carrusel {
+    width: 200px;         /* Ancho fijo para la zona del logo */
+    height: 100px;        /* Alto fijo para la zona del logo */
+    object-fit: contain;  /* Mantiene la proporción sin estirar la imagen */
+    margin: 0 auto;       /* Centra la imagen perfectamente en el medio */
+}
