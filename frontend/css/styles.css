@@ -1,9 +1,10 @@
 
 .icono_Telecom {
-  width: 50px;  /* */
+  width: 60px;  /* Altura de la imagen*/
   height: auto; /* Mantiene la proporción */
   display: block;
 }
+
 
 /* Contenedor del carrusel */
 .carousel-track {
