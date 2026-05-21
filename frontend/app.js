@@ -36,6 +36,10 @@ function iniciarEnrutador() {
         const hash = window.location.hash || "#home";
 
         window.scrollTo({ top: 0 });
+
+        if (hash !== "#login" && hash !== "#carrito") {
+            localStorage.removeItem('redireccionMágica');
+        }
         
         // Guardia de acceso admin (antes de cualquier renderizado)
         if (hash === "#admin") {
