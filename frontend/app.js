@@ -17,10 +17,15 @@ async function cargarProductosYArrancar() {
         if (!respuesta.ok) throw new Error('Error al conectar con la API');
         
         productos = await respuesta.json();
+        
+        // Si ya hay sesión, recuperamos sus favoritos
+        const usuarioSession = localStorage.getItem('usuarioTelecom');
+        if (usuarioSession) await cargarWishlist(JSON.parse(usuarioSession).id);
+
         iniciarEnrutador();
     } catch (error) {
         console.error("Error al cargar productos:", error);
-        alert("No se pudo conectar con la base de datos local. Asegúrate de que XAMPP tiene Apache y MySQL encendidos.");
+        alert("No se pudo conectar con la base de datos local.");
     }
 }
 
@@ -43,7 +48,7 @@ function iniciarEnrutador() {
         }
 
         // Guardia para rutas que requieren login
-        if (hash === "#perfil" || hash === "#cuenta") {
+        if (hash === "#perfil" || hash === "#cuenta" || hash === "#wishlist") {
             if (!localStorage.getItem('usuarioTelecom')) {
                 window.location.hash = "#login";
                 return;
@@ -83,6 +88,7 @@ function iniciarEnrutador() {
         if (hash === "#cuenta") renderizarCuenta();
         if (hash === "#admin") renderizarAdmin();
         if (hash === "#perfil") renderizarPerfil();
+        if (hash === "#wishlist") renderizarWishlist();
     };
 
     window.addEventListener("hashchange", enrutador);
@@ -100,19 +106,22 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
         uiPrecio = `<span class="text-muted text-decoration-line-through small me-2">${parseFloat(prod.precioOriginal).toFixed(2)} €</span><span class="fs-5 fw-bold text-danger">${parseFloat(prod.precio).toFixed(2)} €</span>`;
     }
 
-    // Lógica visual del botón según el stock
-    let botonCarrito = '';
-    if (prod.stock > 0) {
-        botonCarrito = `<button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito"><i class="bi bi-cart-plus"></i></button>`;
-    } else {
-        botonCarrito = `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">X</button>`;
-    }
+    let botonCarrito = prod.stock > 0 
+        ? `<button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito"><i class="bi bi-cart-plus"></i></button>` 
+        : `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">X</button>`;
+
+    // NUEVO: Botón de Favoritos (Solo si hay sesión)
+    const enWishlist = wishlist.includes(prod.id);
+    const corazon = localStorage.getItem('usuarioTelecom') 
+        ? `<button class="btn btn-sm ${enWishlist ? 'btn-danger' : 'btn-light border'} position-absolute top-0 end-0 m-2 rounded-circle shadow-sm" onclick="toggleWishlist(${prod.id})" style="z-index:10;"><i class="bi ${enWishlist ? 'bi-heart-fill' : 'bi-heart text-danger'}"></i></button>` 
+        : '';
 
     const anchoEstilo = esCarrusel ? 'style="min-width: 280px; max-width: 280px;"' : '';
 
     return `
         <div class="card h-100 shadow-sm border-0 bg-light position-relative" ${anchoEstilo}>
             ${etiquetaOferta}
+            ${corazon}
             <img src="${prod.imagen}" class="card-img-top p-2 rounded img-tarjeta-producto" alt="${prod.nombre}">
             <div class="card-body d-flex flex-column">
                 <div class="mb-2">
@@ -356,13 +365,15 @@ function renderizarDetalle(id) {
                         <span class="text-success fw-semibold"><i class="bi bi-truck me-2"></i>Envío en 24/48h</span>
                     </div>
 
-                    <div class="d-grid mb-4">
-                        <button class="btn btn-success btn-lg shadow-sm" onclick="agregarAlCarrito(${prod.id})" ${prod.stock === 0 ? 'disabled' : ''}>
+                    <div class="d-flex gap-2 mb-4">
+                        <button class="btn btn-success btn-lg shadow-sm flex-grow-1" onclick="agregarAlCarrito(${prod.id})" ${prod.stock === 0 ? 'disabled' : ''}>
                             <i class="bi bi-cart-plus me-2"></i> ${prod.stock === 0 ? 'Agotado' : 'Añadir al Carrito'}
                         </button>
+                        ${localStorage.getItem('usuarioTelecom') ? `
+                        <button class="btn ${wishlist.includes(prod.id) ? 'btn-danger' : 'btn-outline-danger'} btn-lg shadow-sm px-4" onclick="toggleWishlist(${prod.id})" title="Lista de Deseos">
+                            <i class="bi ${wishlist.includes(prod.id) ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                        </button>` : ''}
                     </div>
-
-                    <div>
                         <span class="fw-bold small me-2"><i class="bi bi-share"></i> Compartir:</span>
                         <a href="https://twitter.com/intent/tweet?text=${textoTweet}&url=${urlActual}" target="_blank" class="btn btn-outline-info btn-sm">
                             <i class="bi bi-twitter-x"></i> Twittear
@@ -563,15 +574,11 @@ function renderizarLogin() {
 function actualizarMenuNavegacion() {
     const contenedor = document.getElementById('contenedor-auth-nav');
     if (!contenedor) return;
-
     const usuarioSession = localStorage.getItem('usuarioTelecom');
 
     if (usuarioSession) {
         const usuario = JSON.parse(usuarioSession);
-        
-        const adminLink = (usuario.rol === 'admin') 
-            ? '<li><a class="dropdown-item" href="#admin"><i class="bi bi-shield-lock me-2"></i> Panel Admin</a></li>' 
-            : '';
+        const adminLink = (usuario.rol === 'admin') ? '<li><a class="dropdown-item" href="#admin"><i class="bi bi-shield-lock me-2"></i> Panel Admin</a></li>' : '';
 
         contenedor.innerHTML = `
             <div class="nav-item dropdown">
@@ -580,6 +587,7 @@ function actualizarMenuNavegacion() {
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
                     <li><a class="dropdown-item" href="#cuenta"><i class="bi bi-box-seam me-2"></i> Mis Pedidos</a></li>
+                    <li><a class="dropdown-item" href="#wishlist"><i class="bi bi-heart text-danger me-2"></i> Lista de Deseos</a></li>
                     <li><a class="dropdown-item" href="#perfil"><i class="bi bi-person-gear me-2"></i> Mi Cuenta</a></li>
                     ${adminLink} 
                     <li><hr class="dropdown-divider"></li>
@@ -588,13 +596,12 @@ function actualizarMenuNavegacion() {
             </div>
         `;
     } else {
-        contenedor.innerHTML = `
-            <a href="#login" class="nav-link fw-semibold mx-2"><i class="bi bi-person-circle"></i> Login</a>
-        `;
+        contenedor.innerHTML = `<a href="#login" class="nav-link fw-semibold mx-2"><i class="bi bi-person-circle"></i> Login</a>`;
     }
 }
 
 function cerrarSesion() {
+    wishlist = [];
     localStorage.removeItem('usuarioTelecom');
     alert("Has cerrado sesión correctamente.");
     actualizarMenuNavegacion();
@@ -659,6 +666,10 @@ async function iniciarSesion(event) {
 
         if (respuesta.ok) {
             localStorage.setItem('usuarioTelecom', JSON.stringify(resultado.usuario));
+            
+            // <--- LÍNEA NUEVA: Cargamos los favoritos nada más entrar
+            await cargarWishlist(resultado.usuario.id); 
+
             actualizarMenuNavegacion();
             alert(`¡Bienvenido de nuevo, ${resultado.usuario.nombre}!`);
             window.location.hash = "#catalogo";
@@ -1839,4 +1850,86 @@ async function eliminarCuentaUsuario() {
         console.error(e);
         alert("Error de conexión al intentar comunicar con el endpoint de borrado.");
     }
+}
+
+// --- 21. LISTA DE DESEOS (WISHLIST) ---
+async function cargarWishlist(usuarioId) {
+    try {
+        const respuesta = await fetch('../backend/wishlist_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuarioId, accion: 'get' })
+        });
+        if (respuesta.ok) wishlist = await respuesta.json();
+    } catch (e) { console.error("Error al cargar wishlist:", e); }
+}
+
+async function toggleWishlist(productoId) {
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    if (!usuarioSession) return;
+    const usuario = JSON.parse(usuarioSession);
+
+    try {
+        const respuesta = await fetch('../backend/wishlist_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuario.id, accion: 'toggle', producto_id: productoId })
+        });
+        const res = await respuesta.json();
+        
+        if (res.estado === 'añadido') {
+            wishlist.push(productoId);
+        } else if (res.estado === 'eliminado') {
+            wishlist = wishlist.filter(id => id !== productoId);
+        }
+        
+        // --- TRUCO DE UX: Evitar que la pantalla salte hacia arriba ---
+        const scrollActual = window.scrollY; // Guardamos en qué píxel exacto está el usuario
+        const originalScrollTo = window.scrollTo; // Guardamos la función original del navegador
+        window.scrollTo = function() {}; // Desactivamos el scroll de la ventana (lo volvemos mudo)
+        
+        // Repintamos la vista (ahora si las otras funciones intentan hacer scroll, no pasará nada)
+        const hash = window.location.hash;
+        if (hash === "#catalogo" || hash === "#home" || hash === "") {
+            if (hash === "#catalogo") renderizarCatalogo();
+            else renderizarHome(); // Evitamos llamar a iniciarEnrutador() directamente
+        }
+        else if (hash.startsWith("#producto/")) renderizarDetalle(productoId);
+        else if (hash === "#wishlist") renderizarWishlist();
+
+        // Devolvemos todo a la normalidad en cuanto el DOM se haya repintado
+        setTimeout(() => {
+            window.scrollTo = originalScrollTo; // Le devolvemos su función original al navegador
+            window.scrollTo(0, scrollActual);   // Lo anclamos al píxel donde estaba
+        }, 10);
+
+    } catch (e) {
+        alert("Error al actualizar la lista de deseos.");
+    }
+}
+
+function renderizarWishlist() {
+    const contenedor = document.getElementById("wishlist");
+    const productosDeseados = productos.filter(p => wishlist.includes(p.id));
+
+    if (productosDeseados.length === 0) {
+        contenedor.innerHTML = `
+            <div class="container py-5 text-center">
+                <i class="bi bi-heart-half text-muted" style="font-size: 4rem;"></i>
+                <h2 class="mt-3 mb-4">Tu lista de deseos está vacía</h2>
+                <p class="text-muted mb-4">Guarda aquí los productos que te interesan para no perderlos de vista.</p>
+                <a href="#catalogo" class="btn btn-primary">Explorar Catálogo</a>
+            </div>
+        `;
+        return;
+    }
+
+    contenedor.innerHTML = `
+        <div class="container py-5">
+            <h2 class="mb-4 fw-bold"><i class="bi bi-heart-fill text-danger me-2"></i>Mi Lista de Deseos</h2>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                ${productosDeseados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('')}
+            </div>
+        </div>
+    `;
 }
