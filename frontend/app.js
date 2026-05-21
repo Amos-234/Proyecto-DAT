@@ -425,12 +425,15 @@ function renderizarDetalle(id) {
                     </div>
                 </div>
             </div>
-
             ${htmlSimilares}
             ${htmlRecomendados}
 
+            <div id="contenedor-resenas"></div>
+
         </div>
     `;
+    // Cargar las reseñas asíncronamente
+    cargarYRenderizarResenas(prod.id);
 }
 
 // --- FUNCIONES AUXILIARES UI ---
@@ -1932,4 +1935,148 @@ function renderizarWishlist() {
             </div>
         </div>
     `;
+}
+
+// --- 22. SISTEMA DE RESEÑAS Y VALORACIONES ---
+async function cargarYRenderizarResenas(productoId) {
+    const contenedor = document.getElementById('contenedor-resenas');
+    if (!contenedor) return;
+
+    try {
+        const respuesta = await fetch(`../backend/api_resenas.php?producto_id=${productoId}`);
+        const resenas = await respuesta.json();
+        
+        const usuarioSession = localStorage.getItem('usuarioTelecom');
+        let formHTML = '';
+
+        // Si el usuario está registrado, le mostramos el formulario
+        if (usuarioSession) {
+            formHTML = `
+                <div class="card shadow-sm border-0 mb-4 bg-light">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Deja tu opinión</h5>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Valoración (Obligatoria)</label>
+                            <div class="d-flex gap-2 text-warning fs-4" id="estrellas-selector">
+                                <i class="bi bi-star estrella-btn" data-val="1" style="cursor:pointer;" onclick="seleccionarEstrellas(1)"></i>
+                                <i class="bi bi-star estrella-btn" data-val="2" style="cursor:pointer;" onclick="seleccionarEstrellas(2)"></i>
+                                <i class="bi bi-star estrella-btn" data-val="3" style="cursor:pointer;" onclick="seleccionarEstrellas(3)"></i>
+                                <i class="bi bi-star estrella-btn" data-val="4" style="cursor:pointer;" onclick="seleccionarEstrellas(4)"></i>
+                                <i class="bi bi-star estrella-btn" data-val="5" style="cursor:pointer;" onclick="seleccionarEstrellas(5)"></i>
+                            </div>
+                            <input type="hidden" id="resena-puntuacion" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Comentario (Opcional)</label>
+                            <textarea id="resena-comentario" class="form-control" rows="3" placeholder="¿Qué te parece este producto?"></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="enviarResena(${productoId})"><i class="bi bi-send me-1"></i>Enviar Reseña</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Si no está registrado, le mostramos un aviso
+            formHTML = `
+                <div class="alert alert-secondary text-center mb-4 shadow-sm border-0">
+                    <i class="bi bi-lock-fill fs-3 d-block mb-2 text-muted"></i>
+                    Debes <a href="#login" class="alert-link text-primary text-decoration-none">iniciar sesión</a> para dejar una reseña.
+                </div>
+            `;
+        }
+
+        let listaHTML = '';
+        if (resenas.length === 0) {
+            listaHTML = `<p class="text-muted text-center py-4 bg-light rounded"><i class="bi bi-chat-square-text fs-1 d-block mb-2"></i>Aún no hay reseñas para este producto. ¡Sé el primero!</p>`;
+        } else {
+            listaHTML = resenas.map(r => {
+                // Pintamos las estrellas rellenadas según la puntuación
+                const estrellas = '<i class="bi bi-star-fill text-warning"></i>'.repeat(r.puntuacion) + 
+                                  '<i class="bi bi-star text-warning"></i>'.repeat(5 - r.puntuacion);
+                const fecha = new Date(r.fecha_resena).toLocaleDateString('es-ES');
+                
+                return `
+                    <div class="card border-0 border-bottom rounded-0 py-3 mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold"><i class="bi bi-person-circle me-2 text-secondary fs-5"></i>${r.nombre}</span>
+                            <span class="small text-muted">${fecha}</span>
+                        </div>
+                        <div class="mb-2 fs-6">${estrellas}</div>
+                        <p class="mb-0 text-dark" style="font-size:0.95rem;">
+                            ${r.comentario ? r.comentario : '<span class="text-muted fst-italic small">Solo dejó una valoración.</span>'}
+                        </p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        contenedor.innerHTML = `
+            <div class="mt-5 pt-5 border-top">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <h3 class="fw-bold mb-5 text-center"><i class="bi bi-chat-left-text me-2 text-primary"></i>Reseñas y Comentarios</h3>
+                        <div class="row g-5">
+                            <div class="col-md-5 order-2 order-md-1">
+                                ${formHTML}
+                            </div>
+                            <div class="col-md-7 order-1 order-md-2">
+                                ${listaHTML}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.error("Error cargando reseñas:", e);
+    }
+}
+
+function seleccionarEstrellas(valor) {
+    // Guardamos el valor oculto
+    document.getElementById('resena-puntuacion').value = valor;
+    
+    // Pintamos las estrellas interactivamente
+    const estrellas = document.querySelectorAll('.estrella-btn');
+    estrellas.forEach(e => {
+        const num = parseInt(e.getAttribute('data-val'));
+        e.className = num <= valor ? 'bi bi-star-fill estrella-btn text-warning' : 'bi bi-star estrella-btn text-warning';
+    });
+}
+
+async function enviarResena(productoId) {
+    const puntuacion = parseInt(document.getElementById('resena-puntuacion').value);
+    const comentario = document.getElementById('resena-comentario').value.trim();
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+
+    if (!usuarioSession) return;
+    const usuario = JSON.parse(usuarioSession);
+
+    // Validación estricta: Estrella obligatoria
+    if (puntuacion === 0) {
+        alert("Por favor, selecciona una valoración de 1 a 5 estrellas antes de enviar.");
+        return;
+    }
+
+    try {
+        const respuesta = await fetch('../backend/api_resenas.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                usuario_id: usuario.id,
+                producto_id: productoId,
+                puntuacion: puntuacion,
+                comentario: comentario
+            })
+        });
+
+        const res = await respuesta.json();
+        if (respuesta.ok) {
+            alert(res.mensaje);
+            cargarYRenderizarResenas(productoId); // Refresca automáticamente la vista de las reseñas sin recargar la página
+        } else {
+            alert("Error: " + res.error);
+        }
+    } catch (e) {
+        alert("Error de conexión al enviar la reseña.");
+    }
 }
