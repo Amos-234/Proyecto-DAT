@@ -259,7 +259,7 @@ function realizarBusqueda(event) {
     }, 50);
 }
 
-// --- 5. VISTA DE DETALLE DE PRODUCTO (ACTUALIZADA) ---
+// --- 5. VISTA DE DETALLE DE PRODUCTO ---
 function renderizarDetalle(id) {
     // 1. Subir arriba del todo al cargar un nuevo producto
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -321,7 +321,6 @@ function renderizarDetalle(id) {
     }
 
     // --- SEGURIDAD ---
-    // Si algún producto aún no tiene la descripción detallada, usamos la corta de respaldo
     const descripcionLarga = prod.descripcion_detallada || prod.descripcion;
 
     // --- RENDERIZADO VISUAL DEL DOM ---
@@ -332,7 +331,6 @@ function renderizarDetalle(id) {
                 <i class="bi bi-arrow-left"></i> Volver atrás
             </button>
 
-            <!-- SECCIÓN 1: Cabecera del Producto -->
             <div class="row mb-5 align-items-center">
                 <div class="col-md-6 mb-4 mb-md-0 text-center">
                     <div class="bg-white rounded shadow-sm p-4">
@@ -347,7 +345,6 @@ function renderizarDetalle(id) {
                     <h1 class="fw-bold fs-2 mt-2 mb-3">${prod.nombre}</h1>
                     <div class="mb-4">${uiPrecioGrande}</div>
                     
-                    <!-- Resumen corto: Solo mostramos hasta 120 caracteres de la BD arriba -->
                     <p class="text-muted fs-5 mb-4">
                         ${prod.descripcion.length > 120 ? prod.descripcion.substring(0, 120) + '...' : prod.descripcion}
                     </p>
@@ -372,7 +369,6 @@ function renderizarDetalle(id) {
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: Descripción Detallada (Sincronizada con la BD) -->
             <div class="row mb-5">
                 <div class="col-12">
                     <div class="card border-0 shadow-sm bg-light">
@@ -382,7 +378,6 @@ function renderizarDetalle(id) {
                                 ${descripcionLarga}
                             </p>
                             
-                            <!-- Cajas de beneficios genéricas -->
                             <div class="row g-3">
                                 <div class="col-sm-6 col-md-3">
                                     <div class="p-3 bg-white rounded shadow-sm text-center border">
@@ -418,7 +413,6 @@ function renderizarDetalle(id) {
                 </div>
             </div>
 
-            <!-- SECCIÓN 3: Grids de Similares y Recomendados -->
             ${htmlSimilares}
             ${htmlRecomendados}
 
@@ -426,7 +420,7 @@ function renderizarDetalle(id) {
     `;
 }
 
-// --- FUNCIONES AUXILIARES UI (Ver contraseña y Formatear inputs) ---
+// --- FUNCIONES AUXILIARES UI ---
 function togglePass(id, mostrar) {
     const input = document.getElementById(id);
     if (input) input.type = mostrar ? "text" : "password";
@@ -434,28 +428,21 @@ function togglePass(id, mostrar) {
 
 function formatearTarjeta(input) {
     let valor = input.value.replace(/\D/g, '');
-    valor = valor.replace(/(\d{4})(?=\d)/g, '$1-'); // Añade el guion cada 4 números
+    valor = valor.replace(/(\d{4})(?=\d)/g, '$1-'); 
     input.value = valor;
 }
 
 function formatearFecha(input) {
-    // Limpiar: solo permitimos números
     let valor = input.value.replace(/\D/g, ''); 
-
-    // Limitar a 4 dígitos (MMYY)
     if (valor.length > 4) valor = valor.substring(0, 4);
 
-    // Lógica estricta de Mes (01-12)
     if (valor.length >= 2) {
         let mes = parseInt(valor.substring(0, 2));
-        
-        // Si el usuario escribe 0, lo dejamos esperar. Si escribe > 12, lo ajustamos a 12. Si es 00, a 01.
         if (mes > 12) mes = 12;
         if (mes === 0) mes = 1; 
         valor = mes.toString().padStart(2, '0') + valor.substring(2);
     }
 
-    // 4. Aplicar formato visual (MM/YY)
     if (valor.length > 2) {
         input.value = valor.substring(0, 2) + '/' + valor.substring(2, 4);
     } else {
@@ -464,10 +451,10 @@ function formatearFecha(input) {
 }
 
 function formatearCVV(input) {
-    input.value = input.value.replace(/\D/g, ''); // Solo números
+    input.value = input.value.replace(/\D/g, ''); 
 }
 
-// --- 6. FORMULARIOS DE AUTENTICACIÓN (LOGIN Y REGISTRO) ---
+// --- 6. FORMULARIOS DE AUTENTICACIÓN ---
 function renderizarLogin() {
     const contenedorLogin = document.getElementById("login");
     
@@ -580,7 +567,6 @@ function actualizarMenuNavegacion() {
     if (usuarioSession) {
         const usuario = JSON.parse(usuarioSession);
         
-        // Creamos la lógica del enlace de administrador
         const adminLink = (usuario.rol === 'admin') 
             ? '<li><a class="dropdown-item" href="#admin"><i class="bi bi-shield-lock me-2"></i> Panel Admin</a></li>' 
             : '';
@@ -624,7 +610,6 @@ async function registrarUsuario(event) {
     const cp        = document.getElementById('reg-cp')?.value.trim() || '';
     const ciudad    = document.getElementById('reg-ciudad')?.value.trim() || '';
 
-    // Validación de teléfono si lo rellenan
     if (telefono && !/^\+?[\d\s\-]{7,15}$/.test(telefono)) {
         alert('El formato del teléfono no es válido (ej: +34 600 000 000).');
         return;
@@ -690,7 +675,6 @@ function agregarAlCarrito(id) {
     if (producto) {
         const itemExistente = carrito.find(item => item.id === id);
         
-        // NUEVO: Validar stock
         const cantidadActual = itemExistente ? itemExistente.cantidad : 0;
         if (cantidadActual + 1 > producto.stock) {
             alert(`No puedes añadir más. Solo quedan ${producto.stock} unidades en stock.`);
@@ -715,7 +699,6 @@ function cambiarCantidad(id, nuevaCantidad) {
     
     const productoOriginal = productos.find(p => p.id === id);
     
-    // Validar stock en el carrito
     if (cantidad > productoOriginal.stock) {
         alert(`Stock insuficiente. Máximo disponible: ${productoOriginal.stock}.`);
         return;
@@ -895,11 +878,10 @@ function validarPago(metodo) {
         
         if (!numInput || !cvvInput || !dateInput) return false;
 
-        const num = numInput.value.replace(/-/g, ''); // Quitamos guiones para validar
+        const num = numInput.value.replace(/-/g, ''); 
         const cvv = cvvInput.value;
         const date = dateInput.value;
 
-        // Validación: 16 números, 3 CVV, y mes 01-12 con año YY
         const numValido = /^\d{16}$/.test(num);
         const cvvValido = /^\d{3}$/.test(cvv);
         const dateValido = /^(0[1-9]|1[0-2])\/\d{2}$/.test(date);
@@ -913,7 +895,6 @@ async function procesarPago() {
 
     const metodoPago = document.getElementById("metodo-pago").value;
     
-    // 1. Validamos los campos dinámicos
     if (!validarPago(metodoPago)) {
         alert("Por favor, introduce datos de pago válidos (Ej: 16 dígitos para tarjetas o un email válido para PayPal).");
         return;
@@ -922,7 +903,6 @@ async function procesarPago() {
     const usuarioSession = localStorage.getItem('usuarioTelecom');
     const total = carrito.reduce((acc, i) => acc + (parseFloat(i.precio) * i.cantidad), 0) * 1.21;
 
-    // 2. Función visual de agradecimiento
     const mostrarGracias = () => {
         document.querySelector("main").innerHTML = `
             <div class="container py-5 text-center" style="min-height: 50vh; margin-top: 10vh;">
@@ -933,14 +913,12 @@ async function procesarPago() {
                 <div class="spinner-border text-success mt-3" role="status" style="width: 2rem; height: 2rem;"></div>
             </div>
         `;
-        // Redirigir al inicio o a cuenta tras 4 segundos
         setTimeout(() => { 
             window.location.hash = usuarioSession ? "#cuenta" : "#home"; 
             location.reload(); 
         }, 4000);
     };
 
-    // 3. Lógica según el usuario (Invitado vs Logueado)
     if (!usuarioSession) {
         carrito = [];
         mostrarGracias();
@@ -1052,7 +1030,7 @@ async function renderizarAdmin() {
     const contenedor = document.getElementById("admin");
     const usuarioSession = localStorage.getItem('usuarioTelecom');
     const admin = JSON.parse(usuarioSession);
-    idAdminActivo = admin.id; // Guardamos el ID para usarlo en los botones
+    idAdminActivo = admin.id; 
 
     contenedor.innerHTML = `
         <div class="container py-5">
@@ -1080,7 +1058,7 @@ async function renderizarAdmin() {
                     
                     <div class="input-group shadow-sm" style="max-width: 350px;">
                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por ID, cliente, email o estado..." oninput="filtrarPedidosAdmin(this.value)">
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por ID, cliente o estado..." oninput="filtrarPedidosAdmin(this.value)">
                     </div>
 
                     <button class="btn btn-sm btn-outline-secondary shadow-sm" onclick="cargarPedidosAdmin()">
@@ -1159,15 +1137,14 @@ function mostrarPestanaAdmin(tab) {
     const tabPedidos = document.getElementById('admin-tab-pedidos');
     const tabProductos = document.getElementById('admin-tab-productos');
     
-    // Mostramos u ocultamos los contenedores según la pestaña elegida
     if (tabPedidos) tabPedidos.style.display = tab === 'pedidos' ? 'block' : 'none';
     if (tabProductos) tabProductos.style.display = tab === 'productos' ? 'block' : 'none';
 
-    // Actualizamos visualmente qué botón está "activo" (iluminado) en el menú
     document.querySelectorAll('#adminTabs .nav-link').forEach((btn, i) => {
         btn.classList.toggle('active', (tab === 'pedidos' && i === 0) || (tab === 'productos' && i === 1));
     });
 }
+
 
 // --- 12. CARGAR Y FILTRAR PEDIDOS (Panel Admin) ---
 async function cargarPedidosAdmin(adminId) {
@@ -1185,7 +1162,7 @@ async function cargarPedidosAdmin(adminId) {
         adminPedidosGlobal = await respuesta.json();
         if (!respuesta.ok) throw new Error(adminPedidosGlobal.error || "Error de servidor");
 
-        filtrarPedidosAdmin(""); // Mostramos todos por defecto al cargar
+        filtrarPedidosAdmin(""); 
 
     } catch (error) {
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>${error.message}</td></tr>`;
@@ -1199,7 +1176,6 @@ function filtrarPedidosAdmin(texto) {
 
     const termino = texto.toLowerCase().trim();
     
-    // Filtramos cruzando datos: ID, Nombre, Email o Estado
     const filtrados = adminPedidosGlobal.filter(p => 
         p.id.toString().includes(termino) ||
         p.nombre.toLowerCase().includes(termino) ||
@@ -1215,10 +1191,10 @@ function filtrarPedidosAdmin(texto) {
     }
 
     tbody.innerHTML = filtrados.map(p => {
-        const detallesStr = p.detalles.map(d => `• ${d.cantidad}x ${d.nombre}`).join('\n');
         const badgeColor = p.estado === 'Procesando' ? 'bg-warning text-dark' 
                          : p.estado === 'Completado' ? 'bg-success' 
                          : 'bg-secondary';
+                         
         return `
             <tr>
                 <td class="fw-semibold ps-4">#${p.id}</td>
@@ -1230,12 +1206,92 @@ function filtrarPedidosAdmin(texto) {
                 <td><span class="badge ${badgeColor}">${p.estado}</span></td>
                 <td class="text-end fw-bold text-primary">${parseFloat(p.total).toFixed(2)} €</td>
                 <td class="text-end pe-4">
-                    <button class="btn btn-sm btn-outline-info" onclick="alert('Detalles del Pedido #${p.id}:\\n\\n${detallesStr}')" title="Ver artículos">
+                    <!-- AQUI HEMOS CAMBIADO EL ALERT POR LA NUEVA FUNCIÓN VISUAL -->
+                    <button class="btn btn-sm btn-outline-info" onclick="verDetallesPedidoAdmin(${p.id})" title="Ver artículos">
                         <i class="bi bi-eye"></i>
                     </button>
                 </td>
             </tr>`;
     }).join('');
+}
+
+// --- FUNCIÓN VISUAL PARA VER DETALLES DE PEDIDO EN ADMIN ---
+function verDetallesPedidoAdmin(id) {
+    const pedido = adminPedidosGlobal.find(p => p.id === id);
+    if (!pedido) return;
+
+    // Limpiar modal anterior si existiera para que no se dupliquen
+    const modalAnterior = document.getElementById('modalAdminPedido');
+    if (modalAnterior) modalAnterior.remove();
+
+    // Generar la lista de productos comprados (HTML)
+    const detallesHTML = pedido.detalles.map(det => `
+        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+            <div>
+                <h6 class="mb-1 fw-bold text-dark">${det.nombre}</h6>
+                <small class="text-muted">${det.cantidad} unidades x ${parseFloat(det.precio_unitario).toFixed(2)} €</small>
+            </div>
+            <div class="fw-bold text-dark">
+                ${(det.cantidad * parseFloat(det.precio_unitario)).toFixed(2)} €
+            </div>
+        </li>
+    `).join('');
+
+    // Estructura del Modal de Bootstrap
+    const modalHTML = `
+        <div class="modal fade" id="modalAdminPedido" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+              <div class="modal-header bg-light border-bottom-0 pb-3">
+                <h5 class="modal-title fw-bold text-primary">
+                    <i class="bi bi-receipt me-2"></i>Detalle del Pedido #${pedido.id}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              
+              <div class="modal-body p-0">
+                <div class="bg-primary bg-opacity-10 p-4 border-bottom">
+                    <div class="row">
+                        <div class="col-sm-6 mb-3 mb-sm-0">
+                            <p class="mb-1 small text-muted text-uppercase fw-bold">Datos del Cliente</p>
+                            <p class="mb-0 fw-semibold text-dark"><i class="bi bi-person me-2"></i>${pedido.nombre}</p>
+                            <p class="mb-0 small text-dark"><i class="bi bi-envelope me-2"></i>${pedido.email}</p>
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <p class="mb-1 small text-muted text-uppercase fw-bold">Información de Compra</p>
+                            <p class="mb-1 small text-dark"><i class="bi bi-calendar3 me-2"></i>${new Date(pedido.fecha_pedido).toLocaleString('es-ES')}</p>
+                            <span class="badge ${pedido.estado === 'Procesando' ? 'bg-warning text-dark' : 'bg-success'} fs-6 mt-1">${pedido.estado}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de artículos -->
+                <ul class="list-group list-group-flush">
+                    ${detallesHTML}
+                </ul>
+              </div>
+              
+              <div class="modal-footer bg-light border-top-0 d-flex justify-content-between align-items-center py-3">
+                <span class="text-muted fw-bold text-uppercase small">Total del Pedido</span>
+                <span class="fs-3 fw-bold text-primary">${parseFloat(pedido.total).toFixed(2)} €</span>
+              </div>
+            </div>
+          </div>
+        </div>
+    `;
+
+    // Inyectamos el HTML al final de la página web
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Le pedimos a Bootstrap que lo muestre animado
+    const modalElement = document.getElementById('modalAdminPedido');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // Cuando el usuario cierre el modal, limpiamos la basura del HTML
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        modalElement.remove();
+    });
 }
 
 // --- 13. CARGAR Y FILTRAR PRODUCTOS (Panel Admin) ---
@@ -1247,7 +1303,7 @@ async function cargarProductosAdmin() {
         const respuesta = await fetch('../backend/get_productos.php');
         adminProductosGlobal = await respuesta.json();
         
-        filtrarProductosAdmin(""); // Mostramos todos al iniciar
+        filtrarProductosAdmin(""); 
 
     } catch (error) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>No se pudieron cargar los productos.</td></tr>`;
@@ -1261,7 +1317,6 @@ function filtrarProductosAdmin(texto) {
 
     const termino = texto.toLowerCase().trim();
     
-    // Filtramos cruzando datos: Nombre, Categoría o Marca
     const filtrados = adminProductosGlobal.filter(p => 
         p.nombre.toLowerCase().includes(termino) ||
         p.categoria.toLowerCase().includes(termino) ||
@@ -1318,7 +1373,6 @@ async function actualizarStock(productoId, adminId) {
         });
         const res = await respuesta.json();
         if (respuesta.ok) {
-            // Actualizar el array local
             const prod = productos.find(p => p.id === productoId);
             if (prod) prod.stock = nuevoStock;
             alert(res.mensaje);
@@ -1361,7 +1415,6 @@ function mostrarFormularioNuevoProducto(adminId) {
     const contenedor = document.getElementById("formulario-nuevo-producto");
     if (!contenedor) return;
 
-    // Si ya está abierto, lo cerramos
     if (contenedor.innerHTML.trim() !== '') {
         contenedor.innerHTML = '';
         return;
@@ -1454,7 +1507,6 @@ async function guardarNuevoProducto(adminId) {
         alert("Error de conexión al guardar el producto.");
     }
 }
-
 // --- 18. PERFIL DE USUARIO ---
 async function renderizarPerfil() {
     const contenedor = document.getElementById("perfil");
@@ -1479,6 +1531,7 @@ async function renderizarPerfil() {
         if (!respuesta.ok) throw new Error("No se pudo cargar el perfil");
         
         const usuarioDB = await respuesta.json();
+
         localStorage.setItem('usuarioTelecom', JSON.stringify(usuarioDB));
 
         contenedor.innerHTML = `
@@ -1616,7 +1669,6 @@ async function guardarDatosPersonales() {
         });
         const res = await respuesta.json();
         if (respuesta.ok) {
-            // Actualizar sesión local
             usuario.nombre = nombre;
             usuario.email  = email;
             localStorage.setItem('usuarioTelecom', JSON.stringify(usuario));
