@@ -919,6 +919,48 @@ async function procesarPago() {
     }
 
     const usuarioSession = localStorage.getItem('usuarioTelecom');
+
+    if (!usuarioSession) {
+        // Limpiar modal anterior si existiera para evitar duplicados
+        const modalAnterior = document.getElementById('modalLoginRequerido');
+        if (modalAnterior) modalAnterior.remove();
+
+        const modalHTML = `
+            <div class="modal fade" id="modalLoginRequerido" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                  <div class="modal-body p-5 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-person-bounding-box text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">¡Casi lo tienes!</h3>
+                    <p class="text-muted fs-5 mb-4">Para procesar tu pago de forma segura y asociar el pedido a tu nombre, necesitas iniciar sesión o crear una cuenta rápida.</p>
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-primary btn-lg shadow-sm" onclick="cerrarModalEIrALogin()">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión / Registrarse
+                        </button>
+                        <button class="btn btn-light text-muted" data-bs-dismiss="modal">Cancelar y seguir mirando</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        `;
+        
+        // Inyectamos el modal y lo mostramos con animación
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modalElement = document.getElementById('modalLoginRequerido');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+        // Basura limpia: borramos el HTML oculto cuando se cierre
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            modalElement.remove();
+        });
+
+        return; // Detenemos la ejecución del pago
+    }
+
     const total = carrito.reduce((acc, i) => acc + (parseFloat(i.precio) * i.cantidad), 0) * 1.21;
 
     const mostrarGracias = () => {
@@ -932,16 +974,10 @@ async function procesarPago() {
             </div>
         `;
         setTimeout(() => { 
-            window.location.hash = usuarioSession ? "#cuenta" : "#home"; 
+            window.location.hash = "#cuenta"; 
             location.reload(); 
         }, 4000);
     };
-
-    if (!usuarioSession) {
-        carrito = [];
-        mostrarGracias();
-        return;
-    }
 
     const usuario = JSON.parse(usuarioSession);
     try {
@@ -952,7 +988,7 @@ async function procesarPago() {
         });
 
         if (respuesta.ok) {
-            carrito = [];
+            carrito = []; // Solo vaciamos el carrito si el backend nos confirma que todo fue bien
             mostrarGracias();
         } else {
             const res = await respuesta.json();
@@ -961,6 +997,21 @@ async function procesarPago() {
     } catch (e) {
         alert("Fallo de conexión al intentar guardar tu pedido.");
     }
+}
+
+// --- FUNCION AUXILIAR PARA EL MODAL DEL CARRITO ---
+function cerrarModalEIrALogin() {
+    const modalElement = document.getElementById('modalLoginRequerido');
+    if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) modal.hide();
+    }
+    
+    // Dejamos una "miga de pan" para saber que veníamos del carrito
+    localStorage.setItem('redireccionMágica', '#carrito');
+    
+    // Redirigimos al área de login
+    window.location.hash = "#login";
 }
 
 // --- 10. HISTORIAL DE PEDIDOS ---
