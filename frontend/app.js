@@ -523,7 +523,7 @@ function renderizarLogin() {
                                 <div class="row g-2 mb-3">
                                     <div class="col-5">
                                         <label class="form-label text-muted small">Código postal</label>
-                                        <input type="text" id="reg-cp" class="form-control" placeholder="07001" maxlength="5">
+                                        <input type="text" id="reg-cp" class="form-control" placeholder="07001" maxlength="5" pattern="[0-9]{4,5}" title="Debe contener 4 o 5 números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     </div>
                                     <div class="col-7">
                                         <label class="form-label text-muted small">Ciudad</label>
@@ -1578,7 +1578,7 @@ async function renderizarPerfil() {
                         <div class="row g-3 mb-4">
                             <div class="col-5">
                                 <label class="form-label text-muted small">Código postal</label>
-                                <input type="text" id="perfil-cp" class="form-control" value="${usuarioDB.codigo_postal || ''}" placeholder="07001" maxlength="5">
+                                <input type="text" id="perfil-cp" class="form-control" value="${usuarioDB.codigo_postal || ''}" placeholder="07001" maxlength="5" pattern="[0-9]{4,5}" title="Debe contener 4 o 5 números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
                             <div class="col-7">
                                 <label class="form-label text-muted small">Ciudad</label>
