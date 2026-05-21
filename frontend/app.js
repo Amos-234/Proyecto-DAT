@@ -1,9 +1,10 @@
 // --- ESTADO GLOBAL ---
-let productos = []; // Se rellenará dinámicamente desde MySQL
+let productos = []; 
 let carrito = [];
-let adminPedidosGlobal = [];   // NUEVO: Para el buscador de pedidos
-let adminProductosGlobal = []; // NUEVO: Para el buscador de productos
-let idAdminActivo = null;      // NUEVO: Guarda el ID del administrador
+let wishlist = [];             
+let adminPedidosGlobal = [];   
+let adminProductosGlobal = []; 
+let idAdminActivo = null;     
 
 document.addEventListener("DOMContentLoaded", () => {
     cargarProductosYArrancar();
