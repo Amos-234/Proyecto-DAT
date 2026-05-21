@@ -20,7 +20,7 @@ if (!empty($data->admin_id)) {
             $stmt = $pdo->prepare("
                 SELECT p.id, p.fecha_pedido, p.total, p.estado, u.nombre, u.email 
                 FROM pedidos p
-                JOIN usuarios u ON p.usuario_id = u.id
+                LEFT JOIN usuarios u ON p.usuario_id = u.id
                 ORDER BY p.fecha_pedido DESC
             ");
             $stmt->execute();

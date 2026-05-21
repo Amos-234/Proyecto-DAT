@@ -18,22 +18,26 @@ if (!empty($data->usuario_id) && !empty($data->total) && !empty($data->carrito))
         
         $pedido_id = $pdo->lastInsertId();
 
-        // 2. Guardamos producto por producto en la tabla de detalles
+        // 2. Preparamos las consultas (INSERT para detalles y UPDATE para stock)
         $stmt_detalle = $pdo->prepare("INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, precio_unitario) VALUES (:pid, :prod_id, :cant, :precio)");
         
-        // 3. Restar el stock
         $stmt_stock = $pdo->prepare("UPDATE productos SET stock = stock - :cantidad WHERE id = :producto_id AND stock >= :cantidad");
-        $stmt_stock->execute([
-            ':cantidad' => $item->cantidad,
-            ':producto_id' => $item->id
-        ]);
 
+        // 3. Recorremos el carrito y ejecutamos AMBAS consultas por cada producto
         foreach ($data->carrito as $item) {
+            
+            // Guardamos la línea del pedido
             $stmt_detalle->execute([
                 ':pid' => $pedido_id,
                 ':prod_id' => $item->id,
                 ':cant' => $item->cantidad,
                 ':precio' => $item->precio
+            ]);
+
+            // Restamos el stock de ese producto específico
+            $stmt_stock->execute([
+                ':cantidad' => $item->cantidad,
+                ':producto_id' => $item->id
             ]);
         }
 

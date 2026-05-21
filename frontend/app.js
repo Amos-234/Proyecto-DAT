@@ -105,7 +105,7 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
     if (prod.stock > 0) {
         botonCarrito = `<button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito"><i class="bi bi-cart-plus"></i></button>`;
     } else {
-        botonCarrito = `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">Agotado</button>`;
+        botonCarrito = `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">X</button>`;
     }
 
     const anchoEstilo = esCarrusel ? 'style="min-width: 280px; max-width: 280px;"' : '';
@@ -703,6 +703,7 @@ function cambiarCantidad(id, nuevaCantidad) {
     
     if (cantidad > productoOriginal.stock) {
         alert(`Stock insuficiente. Máximo disponible: ${productoOriginal.stock}.`);
+        renderizarCarrito(); // <--- AÑADE ESTA LÍNEA AQUÍ PARA CORREGIR EL BUG VISUAL
         return;
     }
 
@@ -752,7 +753,7 @@ function renderizarCarrito() {
                 <td class="text-center" style="width: 150px;">
                     <div class="input-group input-group-sm mx-auto" style="width: 110px;">
                         <button class="btn btn-outline-secondary" type="button" onclick="cambiarCantidad(${item.id}, ${item.cantidad - 1})">-</button>
-                        <input type="number" class="form-control text-center bg-white text-dark" value="${item.cantidad}" onchange="cambiarCantidad(${item.id}, this.value)" min="1">
+                        <input type="number" class="form-control text-center bg-white text-dark" value="${item.cantidad}" onchange="cambiarCantidad(${item.id}, this.value)" min="1" max="${item.stock}">
                         <button class="btn btn-outline-secondary" type="button" onclick="cambiarCantidad(${item.id}, ${item.cantidad + 1})">+</button>
                     </div>
                 </td>
@@ -1178,11 +1179,12 @@ function filtrarPedidosAdmin(texto) {
 
     const termino = texto.toLowerCase().trim();
     
+    // CORRECCIÓN: Validamos si p.nombre, p.email o p.estado existen antes de usar .toLowerCase()
     const filtrados = adminPedidosGlobal.filter(p => 
         p.id.toString().includes(termino) ||
-        p.nombre.toLowerCase().includes(termino) ||
-        p.email.toLowerCase().includes(termino) ||
-        p.estado.toLowerCase().includes(termino)
+        (p.nombre ? p.nombre.toLowerCase().includes(termino) : false) ||
+        (p.email ? p.email.toLowerCase().includes(termino) : false) ||
+        (p.estado ? p.estado.toLowerCase().includes(termino) : false)
     );
 
     document.getElementById("contador-pedidos").innerText = `${filtrados.length} pedidos encontrados`;
@@ -1197,18 +1199,21 @@ function filtrarPedidosAdmin(texto) {
                          : p.estado === 'Completado' ? 'bg-success' 
                          : 'bg-secondary';
                          
+        // Si el usuario borró su cuenta, p.nombre vendrá vacío, así que lo anonimizamos elegantemente
+        const nombreCliente = p.nombre ? p.nombre : '<span class="text-danger small fw-bold"><i class="bi bi-person-x"></i> Cuenta Eliminada</span>';
+        const emailCliente = p.email ? p.email : '<span class="text-muted small">Anonimizado por RGPD</span>';
+                         
         return `
             <tr>
                 <td class="fw-semibold ps-4">#${p.id}</td>
                 <td>${new Date(p.fecha_pedido).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</td>
                 <td>
-                    <div class="fw-bold">${p.nombre}</div>
-                    <div class="small text-muted">${p.email}</div>
+                    <div class="fw-bold">${nombreCliente}</div>
+                    <div class="small text-muted">${emailCliente}</div>
                 </td>
                 <td><span class="badge ${badgeColor}">${p.estado}</span></td>
                 <td class="text-end fw-bold text-primary">${parseFloat(p.total).toFixed(2)} €</td>
                 <td class="text-end pe-4">
-                    <!-- AQUI HEMOS CAMBIADO EL ALERT POR LA NUEVA FUNCIÓN VISUAL -->
                     <button class="btn btn-sm btn-outline-info" onclick="verDetallesPedidoAdmin(${p.id})" title="Ver artículos">
                         <i class="bi bi-eye"></i>
                     </button>
@@ -1632,6 +1637,17 @@ async function renderizarPerfil() {
                         <div id="msg-password" class="mt-3"></div>
                     </div>
                 </div>
+                <div class="card shadow-sm border-0 border-start border-danger border-4 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Zona de Peligro</h5>
+                        <p class="text-muted small mb-4">
+                            Al eliminar tu cuenta, se borrarán de forma permanente todos tus datos personales de nuestros registros lógicos. Esta acción es irreversible y perderás el acceso a tu historial de pedidos.
+                        </p>
+                        <button class="btn btn-danger" onclick="eliminarCuentaUsuario()">
+                            <i class="bi bi-person-x me-1"></i>Eliminar mi cuenta definitivamente
+                        </button>
+                    </div>
+                </div>
             </div>
         `;
     } catch (e) {
@@ -1783,3 +1799,44 @@ document.addEventListener("click", (evento) => {
         }
     }
 });
+
+// --- 20. ELIMINAR CUENTA DE USUARIO DEFINITIVAMENTE ---
+async function eliminarCuentaUsuario() {
+    const usuarioSesion = JSON.parse(localStorage.getItem('usuarioTelecom'));
+    if (!usuarioSesion) return;
+
+    // Confirmación nativa por seguridad
+    const primeraConfirmacion = confirm("¿Estás absolutamente seguro de que quieres eliminar tu cuenta de Telecom? Perderás todo tu historial de pedidos de forma permanente.");
+    if (!primeraConfirmacion) return;
+
+    const segundaConfirmacion = confirm("¿De verdad quieres proceder? Esta acción NO se puede deshacer y tus datos serán eliminados de la base de datos.");
+    if (!segundaConfirmacion) return;
+
+    try {
+        const respuesta = await fetch('../backend/eliminar_cuenta.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuarioSesion.id })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            alert(resultado.mensaje || "Tu cuenta ha sido eliminada correctamente.");
+            
+            // Destruimos la sesión en el navegador
+            localStorage.removeItem('usuarioTelecom');
+            
+            // Actualizamos la barra de navegación para que vuelva a salir el botón de "Login"
+            actualizarMenuNavegacion();
+            
+            // Redirigimos al Home de la SPA
+            window.location.hash = "#home";
+        } else {
+            alert("Error del servidor: " + (resultado.error || "No se pudo procesar la solicitud."));
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error de conexión al intentar comunicar con el endpoint de borrado.");
+    }
+}
