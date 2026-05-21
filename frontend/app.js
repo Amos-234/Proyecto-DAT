@@ -29,6 +29,8 @@ function iniciarEnrutador() {
     const enrutador = () => {
         const hash = window.location.hash || "#home";
 
+        window.scrollTo({ top: 0 });
+        
         // Guardia de acceso admin (antes de cualquier renderizado)
         if (hash === "#admin") {
             const usuarioSession = localStorage.getItem('usuarioTelecom');
@@ -1761,3 +1763,23 @@ async function guardarContrasena() {
         mostrarMensajePerfil('msg-password', 'danger', 'Error de conexión con el servidor.');
     }
 }
+
+// --- 19. NAVEGACIÓN INTERNA DE LOS PORTALES LEGALES (Índices laterales) ---
+document.addEventListener("click", (evento) => {
+    // Comprobamos si el clic se ha hecho dentro de un enlace del índice
+    const linkLocal = evento.target.closest('.transition-link');
+    
+    if (linkLocal) {
+        // 1. Evitamos el comportamiento por defecto (que cambiaría la URL y rompería la SPA)
+        evento.preventDefault(); 
+        
+        // 2. Obtenemos a qué ID quiere ir (ejemplo: "#legal-datos")
+        const destino = linkLocal.getAttribute('href'); 
+        const elementoDestino = document.querySelector(destino);
+        
+        // 3. Si el elemento existe, hacemos scroll suave hacia él
+        if (elementoDestino) {
+            elementoDestino.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+});

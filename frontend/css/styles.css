@@ -93,3 +93,45 @@
     /* Hemos eliminado el border-radius, el padding y el box-shadow */
 }
 
+
+/* --- MEJORAS ESTÉTICAS PARA PORTALES LEGALES --- */
+
+/* Evita que los títulos queden tapados por el menú sticky-top al usar anclas */
+.scroll-margin {
+    scroll-margin-top: 110px; 
+}
+
+/* -------Efecto hover suave para los enlaces del índice lateral-------*/
+.transition-link {
+    transition: all 0.25s ease-in-out;
+}
+
+.transition-link:hover {
+    background-color: var(--bs-primary-opacity-10, #e6f0ff) !important;
+    color: #0d6efd !important;
+    padding-left: 1.25rem !important;
+    font-weight: 600 !important;
+}
+
+/* Tipografía de alta densidad formal */
+#aviso-legal h1, #aviso-legal h2, #aviso-legal h3 {
+    letter-spacing: -0.5px;
+}
+
+.fw-black {
+    font-weight: 800 !important;
+}
+
+#aviso-legal .card {
+    border-radius: 12px;
+}
+
+/* Asegura el comportamiento sticky perfecto en el sidebar */
+@media (min-width: 992px) {
+    .sticky-top {
+        top: 100px !important;
+    }
+}
+/*-------------------------------------------------------------------*/
+
+
