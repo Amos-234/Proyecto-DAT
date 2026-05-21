@@ -259,8 +259,11 @@ function realizarBusqueda(event) {
     }, 50);
 }
 
-// --- 5. VISTA DE DETALLE DE PRODUCTO ---
+// --- 5. VISTA DE DETALLE DE PRODUCTO (ACTUALIZADA) ---
 function renderizarDetalle(id) {
+    // 1. Subir arriba del todo al cargar un nuevo producto
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     const prod = productos.find(p => p.id === id);
     const contenedorProducto = document.getElementById("producto");
     
@@ -269,49 +272,156 @@ function renderizarDetalle(id) {
         return;
     }
 
+    // --- CONFIGURACIÓN DE PRECIOS Y OFERTAS ---
     let uiPrecioGrande = `<span class="fs-2 text-primary fw-bold">${parseFloat(prod.precio).toFixed(2)} €</span>`;
     let badgeOfertaDetalle = '';
 
     if (prod.precioOriginal && prod.precioOriginal > prod.precio) {
         const porcentajeDescuento = Math.round(((prod.precioOriginal - prod.precio) / prod.precioOriginal) * 100);
         uiPrecioGrande = `<span class="text-muted text-decoration-line-through fs-4 me-3">${parseFloat(prod.precioOriginal).toFixed(2)} €</span><span class="fs-2 fw-bold text-danger">${parseFloat(prod.precio).toFixed(2)} €</span>`;
-        badgeOfertaDetalle = `<span class="badge bg-danger mb-2 ms-2">¡-${porcentajeDescuento}% de Descuento!</span>`;
+        badgeOfertaDetalle = `<span class="badge bg-danger mb-2 ms-2">¡-${porcentajeDescuento}% Dto!</span>`;
     }
 
     const textoTweet = encodeURIComponent(`¡Mira este increíble ${prod.nombre} por solo ${parseFloat(prod.precio).toFixed(2)}€ en Telecom! 🚀`);
     const urlActual = encodeURIComponent(window.location.href);
 
+    // --- LÓGICA: PRODUCTOS SIMILARES (Misma Categoría) ---
+    const similares = productos
+        .filter(p => p.categoria === prod.categoria && p.id !== prod.id)
+        .slice(0, 4);
+
+    let htmlSimilares = '';
+    if (similares.length > 0) {
+        htmlSimilares = `
+            <div class="mt-5 pt-5 border-top">
+                <h3 class="fw-bold mb-4">Productos de la misma categoría</h3>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                    ${similares.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // --- LÓGICA: PRODUCTOS RECOMENDADOS (Aleatorios cruzados) ---
+    const recomendados = productos
+        .filter(p => p.id !== prod.id && !similares.find(s => s.id === p.id))
+        .sort(() => 0.5 - Math.random()) 
+        .slice(0, 4);
+
+    let htmlRecomendados = '';
+    if (recomendados.length > 0) {
+        htmlRecomendados = `
+            <div class="mt-5 pt-5 border-top">
+                <h3 class="fw-bold mb-4">También te podría interesar</h3>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                    ${recomendados.map(p => `<div class="col">${generarTarjetaProducto(p, false)}</div>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // --- SEGURIDAD ---
+    // Si algún producto aún no tiene la descripción detallada, usamos la corta de respaldo
+    const descripcionLarga = prod.descripcion_detallada || prod.descripcion;
+
+    // --- RENDERIZADO VISUAL DEL DOM ---
     contenedorProducto.innerHTML = `
         <div class="container py-5">
-            <button class="btn btn-link text-decoration-none mb-4 text-dark" onclick="window.history.back()">
-                <i class="bi bi-arrow-left"></i> Volver
+            
+            <button class="btn btn-link text-decoration-none mb-4 text-dark p-0" onclick="window.history.back()">
+                <i class="bi bi-arrow-left"></i> Volver atrás
             </button>
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <img src="${prod.imagen}" class="img-fluid rounded shadow-sm w-100" alt="${prod.nombre}">
+
+            <!-- SECCIÓN 1: Cabecera del Producto -->
+            <div class="row mb-5 align-items-center">
+                <div class="col-md-6 mb-4 mb-md-0 text-center">
+                    <div class="bg-white rounded shadow-sm p-4">
+                        <img src="${prod.imagen}" class="img-fluid" alt="${prod.nombre}" style="max-height: 350px; object-fit: contain; width: 100%;">
+                    </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 ps-md-5">
                     <span class="badge bg-secondary mb-2">${prod.marca}</span>
                     <span class="badge bg-info text-dark mb-2">${prod.categoria}</span>
                     ${badgeOfertaDetalle}
-                    <h2 class="fw-bold">${prod.nombre}</h2>
-                    <div class="mb-4 mt-2">${uiPrecioGrande}</div>
-                    <p class="text-muted mb-4">${prod.descripcion}</p>
                     
-                    <div class="d-grid gap-2 mb-5">
-                        <button class="btn btn-success btn-lg" onclick="agregarAlCarrito(${prod.id})">
-                            <i class="bi bi-cart-plus"></i> Añadir al Carrito
+                    <h1 class="fw-bold fs-2 mt-2 mb-3">${prod.nombre}</h1>
+                    <div class="mb-4">${uiPrecioGrande}</div>
+                    
+                    <!-- Resumen corto: Solo mostramos hasta 120 caracteres de la BD arriba -->
+                    <p class="text-muted fs-5 mb-4">
+                        ${prod.descripcion.length > 120 ? prod.descripcion.substring(0, 120) + '...' : prod.descripcion}
+                    </p>
+                    
+                    <div class="d-flex align-items-center gap-4 mb-4 pb-3 border-bottom">
+                        <span class="text-muted"><i class="bi bi-box-seam me-2"></i>Stock: <span class="fw-bold ${prod.stock > 0 ? 'text-dark' : 'text-danger'}">${prod.stock}</span></span>
+                        <span class="text-success fw-semibold"><i class="bi bi-truck me-2"></i>Envío en 24/48h</span>
+                    </div>
+
+                    <div class="d-grid mb-4">
+                        <button class="btn btn-success btn-lg shadow-sm" onclick="agregarAlCarrito(${prod.id})" ${prod.stock === 0 ? 'disabled' : ''}>
+                            <i class="bi bi-cart-plus me-2"></i> ${prod.stock === 0 ? 'Agotado' : 'Añadir al Carrito'}
                         </button>
                     </div>
 
-                    <div class="mt-4 pt-4 border-top">
-                        <p class="fw-bold mb-3"><i class="bi bi-share"></i> Compartir este producto:</p>
-                        <a href="https://twitter.com/intent/tweet?text=${textoTweet}&url=${urlActual}" target="_blank" class="btn btn-outline-info btn-sm me-2 mb-2">
+                    <div>
+                        <span class="fw-bold small me-2"><i class="bi bi-share"></i> Compartir:</span>
+                        <a href="https://twitter.com/intent/tweet?text=${textoTweet}&url=${urlActual}" target="_blank" class="btn btn-outline-info btn-sm">
                             <i class="bi bi-twitter-x"></i> Twittear
                         </a>
                     </div>
                 </div>
             </div>
+
+            <!-- SECCIÓN 2: Descripción Detallada (Sincronizada con la BD) -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm bg-light">
+                        <div class="card-body p-4 p-md-5">
+                            <h4 class="fw-bold mb-4">Descripción Detallada</h4>
+                            <p class="text-muted lh-lg mb-5" style="font-size: 1.1rem; white-space: pre-line;">
+                                ${descripcionLarga}
+                            </p>
+                            
+                            <!-- Cajas de beneficios genéricas -->
+                            <div class="row g-3">
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="p-3 bg-white rounded shadow-sm text-center border">
+                                        <i class="bi bi-shield-check text-primary fs-3 mb-2 d-block"></i>
+                                        <span class="fw-bold d-block">Garantía</span>
+                                        <small class="text-muted">3 Años Oficial</small>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="p-3 bg-white rounded shadow-sm text-center border">
+                                        <i class="bi bi-plug text-primary fs-3 mb-2 d-block"></i>
+                                        <span class="fw-bold d-block">Instalación</span>
+                                        <small class="text-muted">Fácil / Plug&Play</small>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="p-3 bg-white rounded shadow-sm text-center border">
+                                        <i class="bi bi-award text-primary fs-3 mb-2 d-block"></i>
+                                        <span class="fw-bold d-block">Calidad</span>
+                                        <small class="text-muted">Certificación CE</small>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="p-3 bg-white rounded shadow-sm text-center border">
+                                        <i class="bi bi-headset text-primary fs-3 mb-2 d-block"></i>
+                                        <span class="fw-bold d-block">Soporte</span>
+                                        <small class="text-muted">Asistencia 24/7</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: Grids de Similares y Recomendados -->
+            ${htmlSimilares}
+            ${htmlRecomendados}
+
         </div>
     `;
 }
@@ -1059,7 +1169,6 @@ function mostrarPestanaAdmin(tab) {
     });
 }
 
-
 // --- 12. CARGAR Y FILTRAR PEDIDOS (Panel Admin) ---
 async function cargarPedidosAdmin(adminId) {
     const aId = adminId || idAdminActivo;
@@ -1106,7 +1215,7 @@ function filtrarPedidosAdmin(texto) {
     }
 
     tbody.innerHTML = filtrados.map(p => {
-        const detallesStr = p.detalles.map(d => `• ${d.cantidad}x ${d.nombre}`).join('\\n');
+        const detallesStr = p.detalles.map(d => `• ${d.cantidad}x ${d.nombre}`).join('\n');
         const badgeColor = p.estado === 'Procesando' ? 'bg-warning text-dark' 
                          : p.estado === 'Completado' ? 'bg-success' 
                          : 'bg-secondary';
@@ -1345,6 +1454,7 @@ async function guardarNuevoProducto(adminId) {
         alert("Error de conexión al guardar el producto.");
     }
 }
+
 // --- 18. PERFIL DE USUARIO ---
 async function renderizarPerfil() {
     const contenedor = document.getElementById("perfil");
@@ -1352,7 +1462,6 @@ async function renderizarPerfil() {
 
     const usuarioSesion = JSON.parse(localStorage.getItem('usuarioTelecom'));
 
-    // 1. Ponemos un spinner de carga para que el usuario sepa que estamos obteniendo sus datos
     contenedor.innerHTML = `
         <div class="container py-5 text-center">
             <div class="spinner-border text-primary" role="status"></div>
@@ -1361,7 +1470,6 @@ async function renderizarPerfil() {
     `;
 
     try {
-        // 2. Pedimos los datos reales y actualizados a la base de datos
         const respuesta = await fetch('../backend/obtener_perfil.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1370,13 +1478,9 @@ async function renderizarPerfil() {
 
         if (!respuesta.ok) throw new Error("No se pudo cargar el perfil");
         
-        // 3. Este es el usuario con todos los campos (teléfono, dirección, etc.)
         const usuarioDB = await respuesta.json();
-
-        // (Opcional) Sincronizamos el localStorage por si hay discrepancias
         localStorage.setItem('usuarioTelecom', JSON.stringify(usuarioDB));
 
-        // 4. Renderizamos el formulario inyectando los datos de la BD en el atributo "value"
         contenedor.innerHTML = `
             <div class="container py-5" style="max-width: 680px;">
                 <div class="mb-5">
