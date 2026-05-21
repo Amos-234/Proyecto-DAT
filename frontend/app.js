@@ -612,6 +612,7 @@ function cerrarSesion() {
     window.location.hash = "#home";
 }
 
+// --- 8. REGISTRO DE NUEVO USUARIO ---
 async function registrarUsuario(event) {
     event.preventDefault();
 
@@ -623,6 +624,7 @@ async function registrarUsuario(event) {
     const cp        = document.getElementById('reg-cp')?.value.trim() || '';
     const ciudad    = document.getElementById('reg-ciudad')?.value.trim() || '';
 
+    // Validaciones previas
     if (telefono && !/^\+?[\d\s\-]{7,15}$/.test(telefono)) {
         alert('El formato del teléfono no es válido (ej: +34 600 000 000).');
         return;
@@ -642,8 +644,44 @@ async function registrarUsuario(event) {
         const resultado = await respuesta.json();
 
         if (respuesta.ok) {
-            alert("¡Registro exitoso! Ya puedes iniciar sesión en la columna izquierda.");
-            event.target.reset(); 
+            // --- NUEVO MODAL DE ÉXITO PREMIUM ---
+            const modalAnterior = document.getElementById('modalRegistroExitoso');
+            if (modalAnterior) modalAnterior.remove();
+
+            const modalHTML = `
+                <div class="modal fade" id="modalRegistroExitoso" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                      <div class="modal-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-person-check-fill text-success" style="font-size: 4.5rem;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3 text-dark">¡Cuenta Creada!</h3>
+                        <p class="text-muted fs-5 mb-4">Tu registro se ha completado con éxito. Ya puedes utilizar tu correo y contraseña para <strong>iniciar sesión</strong> en la columna de la izquierda.</p>
+                        <button class="btn btn-success btn-lg shadow-sm px-5" data-bs-dismiss="modal">
+                            <i class="bi bi-check2-circle me-2"></i>¡Entendido!
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            const modalElement = document.getElementById('modalRegistroExitoso');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+            // Limpiamos el DOM y el formulario al cerrar el modal
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                modalElement.remove();
+                // Opcional: hacer que el cursor vaya directo al campo de login de email
+                const loginEmail = document.getElementById('login-email');
+                if (loginEmail) loginEmail.focus();
+            });
+
+            event.target.reset(); // Vaciamos el formulario de registro
+            // ------------------------------------
         } else {
             alert("Error: " + resultado.error);
         }
@@ -653,6 +691,7 @@ async function registrarUsuario(event) {
     }
 }
 
+// --- INICIO DE SESIÓN CON MODALES PREMIUM (REDIRECCIÓN A LA HOMEPAGE) ---
 async function iniciarSesion(event) {
     event.preventDefault();
 
@@ -671,14 +710,94 @@ async function iniciarSesion(event) {
         if (respuesta.ok) {
             localStorage.setItem('usuarioTelecom', JSON.stringify(resultado.usuario));
             
-            // <--- LÍNEA NUEVA: Cargamos los favoritos nada más entrar
+            // Cargamos los favoritos nada más entrar
             await cargarWishlist(resultado.usuario.id); 
-
             actualizarMenuNavegacion();
-            alert(`¡Bienvenido de nuevo, ${resultado.usuario.nombre}!`);
-            window.location.hash = "#catalogo";
+            
+            // --- MODAL DE BIENVENIDA (ÉXITO) ---
+            const modalAnterior = document.getElementById('modalLoginExitoso');
+            if (modalAnterior) modalAnterior.remove();
+
+            const nombreCorto = resultado.usuario.nombre.split(' ')[0]; // Pillamos solo el primer nombre
+
+            const modalHTML = `
+                <div class="modal fade" id="modalLoginExitoso" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                      <div class="modal-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-emoji-smile-fill text-primary" style="font-size: 4.5rem;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3 text-dark">¡Hola de nuevo, ${nombreCorto}!</h3>
+                        <p class="text-muted fs-5 mb-4">Has iniciado sesión correctamente. Prepárate para descubrir las mejores soluciones de red corporativa.</p>
+                        
+                        <button class="btn btn-primary btn-lg shadow-sm px-5" data-bs-dismiss="modal">
+                            <i class="bi bi-house-door me-2"></i>Ir al Inicio
+                        </button>
+                        
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            const modalElement = document.getElementById('modalLoginExitoso');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+            // LÓGICA DE REDIRECCIÓN AL CERRAR EL MODAL
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                modalElement.remove();
+                
+                // Comprobamos primero si el usuario fue forzado a loguearse desde el carrito
+                const rutaPendiente = localStorage.getItem('redireccionMágica');
+                if (rutaPendiente) {
+                    localStorage.removeItem('redireccionMágica'); // Limpiamos la pista
+                    window.location.hash = rutaPendiente;         // Lo devolvemos al carrito para que pague
+                } else {
+                    // CORRECCIÓN: Ahora el flujo por defecto te lleva directo a la Homepage
+                    window.location.hash = "#home";               
+                }
+            });
+
         } else {
-            alert("Error de autenticación: " + resultado.error);
+            // --- MODAL DE ERROR (CONTRASEÑA INCORRECTA) ---
+            const modalErrorAnterior = document.getElementById('modalErrorLogin');
+            if (modalErrorAnterior) modalErrorAnterior.remove();
+
+            const modalErrorHTML = `
+                <div class="modal fade" id="modalErrorLogin" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                      <div class="modal-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-shield-lock-fill text-danger" style="font-size: 4.5rem;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3 text-dark">Acceso Denegado</h3>
+                        <p class="text-muted fs-5 mb-4">${resultado.error || "El correo o la contraseña no son correctos. Por favor, inténtalo de nuevo."}</p>
+                        <button class="btn btn-danger btn-lg shadow-sm px-5" data-bs-dismiss="modal">
+                            <i class="bi bi-arrow-return-left me-2"></i>Volver a intentar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalErrorHTML);
+            const modalErrorElement = document.getElementById('modalErrorLogin');
+            const modalError = new bootstrap.Modal(modalErrorElement);
+            modalError.show();
+
+            modalErrorElement.addEventListener('hidden.bs.modal', () => {
+                modalErrorElement.remove();
+                const inputPass = document.getElementById('login-password');
+                if (inputPass) {
+                    inputPass.value = '';
+                    inputPass.focus();
+                }
+            });
         }
     } catch (error) {
         console.error("Error al iniciar sesión:", error);
@@ -693,18 +812,89 @@ function agregarAlCarrito(id) {
         const itemExistente = carrito.find(item => item.id === id);
         
         const cantidadActual = itemExistente ? itemExistente.cantidad : 0;
+        
+        // --- 1. MODAL: LÍMITE DE STOCK ALCANZADO ---
         if (cantidadActual + 1 > producto.stock) {
-            alert(`No puedes añadir más. Solo quedan ${producto.stock} unidades en stock.`);
-            return;
+            const modalAnterior = document.getElementById('modalLimiteStock');
+            if (modalAnterior) modalAnterior.remove();
+
+            const modalHTML = `
+                <div class="modal fade" id="modalLimiteStock" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                      <div class="modal-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-box-seam text-warning" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3 text-dark">Límite de stock</h3>
+                        <p class="text-muted fs-5 mb-4">No puedes añadir más unidades. Solo quedan <strong>${producto.stock}</strong> en stock y ya las tienes todas en tu carrito.</p>
+                        <button class="btn btn-warning btn-lg shadow-sm px-5 text-dark fw-semibold" data-bs-dismiss="modal">
+                            <i class="bi bi-check2-circle me-2"></i>Entendido
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            const modalElement = document.getElementById('modalLimiteStock');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            modalElement.addEventListener('hidden.bs.modal', () => modalElement.remove());
+
+            return; // Detenemos la ejecución
         }
 
+        // Si hay stock, lo añadimos a la variable del carrito
         if (itemExistente) {
             itemExistente.cantidad++;
         } else {
             carrito.push({ ...producto, cantidad: 1 });
         }
-        alert(`Se ha añadido "${producto.nombre}" al carrito.`);
+
+        // --- 2. MODAL: AÑADIDO AL CARRITO CON ÉXITO ---
+        const modalAñadidoAnterior = document.getElementById('modalAñadidoCarrito');
+        if (modalAñadidoAnterior) modalAñadidoAnterior.remove();
+
+        const modalExitoHTML = `
+            <div class="modal fade" id="modalAñadidoCarrito" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                  <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-cart-check-fill text-success" style="font-size: 3.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2 text-dark">¡Añadido al carrito!</h4>
+                    <p class="text-muted mb-4"><strong>${producto.nombre}</strong> se ha añadido correctamente a tu compra.</p>
+                    <div class="d-grid gap-2 col-10 mx-auto">
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-arrow-left me-2"></i>Seguir comprando
+                        </button>
+                        <button class="btn btn-success shadow-sm" onclick="cerrarModalEIrAlCarrito()">
+                            <i class="bi bi-credit-card me-2"></i>Ir al Carrito y Pagar
+                        </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalExitoHTML);
+        const modalElementExito = document.getElementById('modalAñadidoCarrito');
+        const modalExito = new bootstrap.Modal(modalElementExito);
+        modalExito.show();
+        modalElementExito.addEventListener('hidden.bs.modal', () => modalElementExito.remove());
     }
+}
+
+// FUNCIÓN AUXILIAR PARA REDIRIGIR AL CARRITO
+function cerrarModalEIrAlCarrito() {
+    const modalElement = document.getElementById('modalAñadidoCarrito');
+    if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) modal.hide();
+    }
+    window.location.hash = "#carrito";
 }
 
 function cambiarCantidad(id, nuevaCantidad) {
@@ -913,10 +1103,44 @@ async function procesarPago() {
 
     const metodoPago = document.getElementById("metodo-pago").value;
     
+    // --- VALIDACIÓN DE PAGO CON MODAL PREMIUM ---
     if (!validarPago(metodoPago)) {
-        alert("Por favor, introduce datos de pago válidos (Ej: 16 dígitos para tarjetas o un email válido para PayPal).");
-        return;
+        // Limpiar modal anterior si existiera
+        const modalAnterior = document.getElementById('modalPagoInvalido');
+        if (modalAnterior) modalAnterior.remove();
+
+        const modalHTML = `
+            <div class="modal fade" id="modalPagoInvalido" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                  <div class="modal-body p-5 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-credit-card text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-dark">Datos de pago incorrectos</h3>
+                    <p class="text-muted fs-5 mb-4">Por favor, revisa la información introducida. Recuerda que necesitamos 16 dígitos y CVV para tarjetas, o un correo electrónico válido si usas PayPal.</p>
+                    <button class="btn btn-danger btn-lg shadow-sm px-5" data-bs-dismiss="modal">
+                        <i class="bi bi-pencil-square me-2"></i>Revisar datos
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modalElement = document.getElementById('modalPagoInvalido');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+        // Limpieza del DOM al cerrar el modal
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            modalElement.remove();
+        });
+
+        return; // Detenemos la ejecución del pago
     }
+    // ---------------------------------------------
 
     const usuarioSession = localStorage.getItem('usuarioTelecom');
 
@@ -1866,17 +2090,65 @@ document.addEventListener("click", (evento) => {
     }
 });
 
-// --- 20. ELIMINAR CUENTA DE USUARIO DEFINITIVAMENTE ---
-async function eliminarCuentaUsuario() {
+// --- 20. ELIMINAR CUENTA DE USUARIO DEFINITIVAMENTE (MODAL PREMIUM) ---
+function eliminarCuentaUsuario() {
+    const usuarioSesion = localStorage.getItem('usuarioTelecom');
+    if (!usuarioSesion) return;
+
+    // Limpiar modal anterior si existiera para evitar duplicados en el DOM
+    const modalAnterior = document.getElementById('modalEliminarCuenta');
+    if (modalAnterior) modalAnterior.remove();
+
+    const modalHTML = `
+        <div class="modal fade" id="modalEliminarCuenta" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+              <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="bi bi-person-x-fill text-danger" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="fw-bold mb-3 text-dark">¿Eliminar tu cuenta?</h3>
+                <p class="text-muted fs-5 mb-4">
+                    Esta acción es <strong class="text-danger">totalmente irreversible</strong>. Perderás de forma permanente el acceso a tu perfil, tu historial y tu lista de deseos.
+                </p>
+                <div class="alert alert-warning small text-start border-0 shadow-sm" style="border-radius: 10px;">
+                    <i class="bi bi-info-circle-fill me-2"></i>Nota legal: Tus pedidos previos no se borrarán; se conservarán de forma <strong>anonimizada</strong> para cumplir con las normativas fiscales y contables de la empresa.
+                </div>
+                <div class="d-grid gap-3 mt-4">
+                    <button class="btn btn-danger btn-lg shadow-sm" onclick="confirmarYEjecutarEliminarCuenta()">
+                        <i class="bi bi-trash3 me-2"></i>Sí, eliminar mi cuenta para siempre
+                    </button>
+                    <button class="btn btn-light text-muted" data-bs-dismiss="modal">No, cancelar y conservar mi cuenta</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    `;
+
+    // Inyectamos el modal al final del body y lo inicializamos
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modalElement = document.getElementById('modalEliminarCuenta');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // Limpieza automática del DOM al cerrar la ventana modal
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        modalElement.remove();
+    });
+}
+
+// FUNCIÓN INTERNA: Ejecuta de verdad la petición asíncrona al servidor PHP
+async function confirmarYEjecutarEliminarCuenta() {
     const usuarioSesion = JSON.parse(localStorage.getItem('usuarioTelecom'));
     if (!usuarioSesion) return;
 
-    // Confirmación nativa por seguridad
-    const primeraConfirmacion = confirm("¿Estás absolutamente seguro de que quieres eliminar tu cuenta de Telecom? Perderás todo tu historial de pedidos de forma permanente.");
-    if (!primeraConfirmacion) return;
-
-    const segundaConfirmacion = confirm("¿De verdad quieres proceder? Esta acción NO se puede deshacer y tus datos serán eliminados de la base de datos.");
-    if (!segundaConfirmacion) return;
+    // Cerramos el modal de advertencia de forma fluida
+    const modalElement = document.getElementById('modalEliminarCuenta');
+    if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) modal.hide();
+    }
 
     try {
         const respuesta = await fetch('../backend/eliminar_cuenta.php', {
@@ -1888,16 +2160,27 @@ async function eliminarCuentaUsuario() {
         const resultado = await respuesta.json();
 
         if (respuesta.ok) {
-            alert(resultado.mensaje || "Tu cuenta ha sido eliminada correctamente.");
-            
-            // Destruimos la sesión en el navegador
+            // Reutilizamos el diseño limpio de "Gracias por tu compra" para la despedida
+            document.querySelector("main").innerHTML = `
+                <div class="container py-5 text-center" style="min-height: 50vh; margin-top: 10vh;">
+                    <div class="display-1 text-secondary mb-3"><i class="bi bi-emoji-frown-fill"></i></div>
+                    <h2 class="fw-bold">Cuenta eliminada correctamente</h2>
+                    <p class="text-muted fs-5 mt-3">${resultado.mensaje || 'Lamentamos que te vayas. Tus datos han sido borrados de nuestros sistemas.'}</p>
+                    <p class="small text-muted">Redirigiéndote al inicio automáticamente...</p>
+                    <div class="spinner-border text-secondary mt-3" role="status" style="width: 2rem; height: 2rem;"></div>
+                </div>
+            `;
+
+            // Borramos la sesión en local
             localStorage.removeItem('usuarioTelecom');
-            
-            // Actualizamos la barra de navegación para que vuelva a salir el botón de "Login"
-            actualizarMenuNavegacion();
-            
-            // Redirigimos al Home de la SPA
-            window.location.hash = "#home";
+            wishlist = [];
+
+            setTimeout(() => {
+                actualizarMenuNavegacion();
+                window.location.hash = "#home";
+                location.reload(); // Recarga limpia de la SPA
+            }, 4000);
+
         } else {
             alert("Error del servidor: " + (resultado.error || "No se pudo procesar la solicitud."));
         }
