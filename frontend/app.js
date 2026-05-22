@@ -1711,7 +1711,7 @@ async function eliminarProducto(productoId, adminId) {
     }
 }
 
-// --- 16. FORMULARIO NUEVO PRODUCTO ---
+// --- 16. FORMULARIO NUEVO PRODUCTO (VERSION COMPLETA CON AMBAS DESCRIPCIONES) ---
 function mostrarFormularioNuevoProducto(adminId) {
     const contenedor = document.getElementById("formulario-nuevo-producto");
     if (!contenedor) return;
@@ -1750,10 +1750,16 @@ function mostrarFormularioNuevoProducto(adminId) {
                         <label class="form-label text-muted small">URL de imagen</label>
                         <input type="text" id="np-imagen" class="form-control" placeholder="https://...">
                     </div>
+                    
                     <div class="col-12">
-                        <label class="form-label text-muted small">Descripción</label>
-                        <textarea id="np-descripcion" class="form-control" rows="2" placeholder="Descripción breve del producto..."></textarea>
+                        <label class="form-label text-muted small">Descripción Breve</label>
+                        <textarea id="np-descripcion" class="form-control" rows="2" placeholder="Descripción breve para las tarjetas de la tienda..."></textarea>
                     </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small">Descripción Detallada</label>
+                        <textarea id="np-descripcion-detallada" class="form-control" rows="4" placeholder="Especificaciones técnicas completas para la página del producto..."></textarea>
+                    </div>
+                    
                     <div class="col-12 d-flex gap-2 justify-content-end">
                         <button class="btn btn-outline-secondary" onclick="document.getElementById('formulario-nuevo-producto').innerHTML=''">
                             Cancelar
@@ -1777,6 +1783,9 @@ async function guardarNuevoProducto(adminId) {
     const stock      = parseInt(document.getElementById('np-stock')?.value);
     const imagen     = document.getElementById('np-imagen')?.value.trim();
     const descripcion = document.getElementById('np-descripcion')?.value.trim();
+    
+    // Capturamos el nuevo campo de descripción detallada
+    const descripcion_detallada = document.getElementById('np-descripcion-detallada')?.value.trim(); 
 
     if (!nombre || !marca || !categoria || isNaN(precio) || isNaN(stock)) {
         alert("Por favor, rellena todos los campos obligatorios (nombre, marca, categoría, precio y stock).");
@@ -1793,14 +1802,19 @@ async function guardarNuevoProducto(adminId) {
             body: JSON.stringify({
                 admin_id: admin.id,
                 accion: 'añadir',
-                nombre, marca, categoria, precio, stock, imagen, descripcion
+                nombre, marca, categoria, precio, stock, imagen, descripcion, 
+                descripcion_detallada // Lo enviamos al servidor PHP
             })
         });
         const res = await respuesta.json();
         if (respuesta.ok) {
             alert(res.mensaje);
             document.getElementById('formulario-nuevo-producto').innerHTML = '';
-            cargarProductosAdmin(admin.id);
+            
+            cargarProductosAdmin(admin.id); 
+            // Refrescamos la memoria del catálogo para no tener que pulsar F5
+            cargarProductosYArrancar();     
+            
         } else {
             alert("Error: " + res.error);
         }
@@ -1808,6 +1822,7 @@ async function guardarNuevoProducto(adminId) {
         alert("Error de conexión al guardar el producto.");
     }
 }
+
 // --- 18. PERFIL DE USUARIO ---
 async function renderizarPerfil() {
     const contenedor = document.getElementById("perfil");

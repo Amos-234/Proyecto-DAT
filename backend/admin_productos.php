@@ -42,7 +42,7 @@ try {
     
     // ACCIÓN: AÑADIR PRODUCTO
     elseif ($data->accion === 'añadir') {
-        $stmt = $pdo->prepare("INSERT INTO productos (nombre, marca, categoria, precio, imagen, descripcion, stock) VALUES (:nom, :mar, :cat, :pre, :img, :desc, :stock)");
+        $stmt = $pdo->prepare("INSERT INTO productos (nombre, marca, categoria, precio, imagen, descripcion, descripcion_detallada, stock) VALUES (:nom, :mar, :cat, :pre, :img, :desc, :desc_det, :stock)");
         $stmt->execute([
             ':nom' => $data->nombre,
             ':mar' => $data->marca,
@@ -50,6 +50,7 @@ try {
             ':pre' => $data->precio,
             ':img' => $data->imagen,
             ':desc' => $data->descripcion,
+            ':desc_det' => $data->descripcion_detallada, // Añadido aquí
             ':stock' => $data->stock
         ]);
         echo json_encode(["mensaje" => "Producto añadido con éxito"]);
