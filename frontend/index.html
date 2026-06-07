@@ -967,7 +967,48 @@
                 </div>
             </div>
         </footer>
+        <div class="modal fade" id="modalCheckout" tabindex="-1" aria-labelledby="modalCheckoutLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title fw-bold" id="modalCheckoutLabel"><i class="bi bi-box-seam me-2"></i>Opciones de Entrega</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                
+                        <!-- ESTADO 1: Elegir opción -->
+                        <div id="checkout-opciones">
+                            <h6 class="mb-4 text-muted">¿Cómo deseas recibir tu pedido?</h6>
+                            <div class="d-grid gap-3">
+                                <button id="btn-recogida-tienda" class="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-center py-3 transition-link">
+                                    <i class="bi bi-shop fs-3 me-3"></i> 
+                                    <span class="text-start"><strong>Recogida en Tienda</strong><br><small class="fw-normal">Gratis e inmediato</small></span>
+                                </button>
+                                <button id="btn-envio-domicilio" class="btn btn-primary btn-lg d-flex align-items-center justify-content-center py-3 shadow-sm transition-link">
+                                    <i class="bi bi-truck fs-3 me-3"></i> 
+                                    <span class="text-start"><strong>Envío a Domicilio</strong><br><small class="fw-normal">En 24/48 horas</small></span>
+                                </button>
+                            </div>
+                        </div>
 
+                        <!-- ESTADO 2: Error de dirección -->
+                        <div id="checkout-error-direccion" class="d-none py-3 fade-in">
+                            <i class="bi bi-geo-alt text-danger" style="font-size: 3.5rem;"></i>
+                            <h4 class="mt-3 fw-bold text-dark">Dirección Incompleta</h4>
+                            <p class="text-muted px-2">Para poder enviarte el pedido a casa, necesitamos que actualices tu perfil con tu <strong>dirección, código postal y ciudad</strong>.</p>
+                    
+                            <button type="button" class="btn btn-dark mt-2 w-100 py-3 shadow" data-bs-dismiss="modal" onclick="window.location.hash = '#perfil'">
+                                <i class="bi bi-person-gear me-2"></i>Actualizar mi cuenta ahora
+                            </button>
+                            <button type="button" class="btn btn-link text-muted mt-3 text-decoration-none" onclick="document.getElementById('checkout-opciones').classList.remove('d-none'); document.getElementById('checkout-error-direccion').classList.add('d-none');">
+                                <i class="bi bi-arrow-left me-1"></i> Volver atrás
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
         <script src="./app.js"></script>
     </body>

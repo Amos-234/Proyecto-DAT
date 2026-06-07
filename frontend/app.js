@@ -1038,7 +1038,7 @@ function renderizarCarrito() {
                             
                             <div id="campos-pago" class="mb-4"></div>
                             
-                            <button class="btn btn-success w-100 btn-lg mb-3" onclick="procesarPago()">
+                            <button class="btn btn-success w-100 btn-lg mb-3" onclick="iniciarCheckout()">
                                 <i class="bi bi-credit-card me-2"></i> Realizar Pago
                             </button>
                             <a href="#catalogo" class="btn btn-outline-secondary w-100">
@@ -1099,6 +1099,62 @@ function validarPago(metodo) {
         const dateValido = /^(0[1-9]|1[0-2])\/\d{2}$/.test(date);
 
         return numValido && cvvValido && dateValido;
+    }
+}
+
+// --- Opciones de entrega ---
+async function iniciarCheckout() {
+    if (carrito.length === 0) return alert("El carrito está vacío.");
+
+    const usuarioSession = localStorage.getItem('usuarioTelecom');
+    if (!usuarioSession) {
+        alert("Debes iniciar sesión para comprar.");
+        window.location.hash = "#login";
+        return;
+    }
+
+    const usuario = JSON.parse(usuarioSession);
+
+    try {
+        // 1. Pedimos los datos al servidor para verificar si tiene dirección
+        const respuesta = await fetch('../backend/obtener_perfil.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuario.id })
+        });
+        const perfilCompleto = await respuesta.json();
+
+        // 2. Preparamos y abrimos el Modal visualmente
+        const modalCheckout = new bootstrap.Modal(document.getElementById('modalCheckout'));
+        document.getElementById('checkout-opciones').classList.remove('d-none');
+        document.getElementById('checkout-error-direccion').classList.add('d-none');
+        
+        // 3. Comportamiento del botón "Envío a Domicilio"
+        document.getElementById('btn-envio-domicilio').onclick = () => {
+            if (!perfilCompleto.direccion || !perfilCompleto.codigo_postal || !perfilCompleto.ciudad) {
+                // Si falta algún dato, cambia a la pantalla de error
+                document.getElementById('checkout-opciones').classList.add('d-none');
+                document.getElementById('checkout-error-direccion').classList.remove('d-none');
+            } else {
+                // Si todo está correcto, cierra el modal y llama a TU función original de pago
+                modalCheckout.hide();
+                procesarPago(); 
+            }
+        };
+
+        // 4. Comportamiento del botón "Recogida en Tienda"
+        document.getElementById('btn-recogida-tienda').onclick = () => {
+            // No importa si tiene dirección, cierra el modal y llama a TU función original de pago
+            modalCheckout.hide();
+            procesarPago(); 
+        };
+
+        // Mostramos el modal
+        modalCheckout.show();
+
+    } catch (error) {
+        console.error("Error al validar perfil para el checkout:", error);
+        alert("Ocurrió un error al procesar la solicitud.");
     }
 }
 
