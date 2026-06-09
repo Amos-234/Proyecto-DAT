@@ -2359,7 +2359,7 @@ async function cargarYRenderizarResenas(productoId) {
         const usuarioSession = localStorage.getItem('usuarioTelecom');
         let formHTML = '';
 
-        // Si el usuario está registrado, le mostramos el formulario
+        // Formulario de reseñas (Sin tocar nada de tu lógica original)
         if (usuarioSession) {
             formHTML = `
                 <div class="card shadow-sm border-0 mb-4 bg-light">
@@ -2385,7 +2385,6 @@ async function cargarYRenderizarResenas(productoId) {
                 </div>
             `;
         } else {
-            // Si no está registrado, le mostramos un aviso
             formHTML = `
                 <div class="alert alert-secondary text-center mb-4 shadow-sm border-0">
                     <i class="bi bi-lock-fill fs-3 d-block mb-2 text-muted"></i>
@@ -2395,17 +2394,55 @@ async function cargarYRenderizarResenas(productoId) {
         }
 
         let listaHTML = '';
+        let cabeceraMediaHTML = '';
+
         if (resenas.length === 0) {
-            listaHTML = `<p class="text-muted text-center py-4 bg-light rounded"><i class="bi bi-chat-square-text fs-1 d-block mb-2"></i>Aún no hay reseñas para este producto. ¡Sé el primero!</p>`;
+            // Diseño elegante y profesional para cuando NO hay reseñas
+            cabeceraMediaHTML = `
+                <div class="text-center py-5 bg-white rounded-3 shadow-sm border mb-4">
+                    <i class="bi bi-star-half text-warning opacity-50 display-1 mb-3 d-block"></i>
+                    <h4 class="fw-bold text-dark mb-2">Sin valoraciones</h4>
+                    <p class="text-muted mb-0">Aún no hay reseñas para este producto. ¡Anímate y sé el primero en dejar tu opinión!</p>
+                </div>
+            `;
         } else {
+            // 1. Cálculo matemático de la nota media
+            const suma = resenas.reduce((acc, r) => acc + parseInt(r.puntuacion), 0);
+            const media = (suma / resenas.length).toFixed(1);
+            
+            // 2. Lógica para pintar las estrellas de la media (incluyendo medias estrellas)
+            let estrellasMedia = '';
+            const mediaRedondeada = Math.round(media * 2) / 2; // Redondea a 0.5 más cercano
+            
+            for (let i = 1; i <= 5; i++) {
+                if (i <= Math.floor(mediaRedondeada)) {
+                    estrellasMedia += '<i class="bi bi-star-fill text-warning"></i>';
+                } else if (i === Math.ceil(mediaRedondeada) && mediaRedondeada % 1 !== 0) {
+                    estrellasMedia += '<i class="bi bi-star-half text-warning"></i>'; // Media estrella
+                } else {
+                    estrellasMedia += '<i class="bi bi-star text-warning"></i>';
+                }
+            }
+
+            // 3. Diseño del bloque visual de resumen
+            cabeceraMediaHTML = `
+                <div class="d-flex align-items-center mb-4 bg-white p-4 rounded-3 shadow-sm border">
+                    <div class="display-3 fw-bold text-dark me-4">${media}</div>
+                    <div>
+                        <div class="fs-4 mb-1">${estrellasMedia}</div>
+                        <div class="text-muted">Basado en <strong>${resenas.length}</strong> valoración${resenas.length !== 1 ? 'es' : ''}</div>
+                    </div>
+                </div>
+            `;
+
+            // 4. Renderizado de la lista de reseñas (mismo flujo, retoque estético mínimo)
             listaHTML = resenas.map(r => {
-                // Pintamos las estrellas rellenadas según la puntuación
                 const estrellas = '<i class="bi bi-star-fill text-warning"></i>'.repeat(r.puntuacion) + 
                                   '<i class="bi bi-star text-warning"></i>'.repeat(5 - r.puntuacion);
                 const fecha = new Date(r.fecha_resena).toLocaleDateString('es-ES');
                 
                 return `
-                    <div class="card border-0 border-bottom rounded-0 py-3 mb-2">
+                    <div class="card border-0 border-bottom rounded-0 py-3 mb-2 bg-transparent">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="fw-bold"><i class="bi bi-person-circle me-2 text-secondary fs-5"></i>${r.nombre}</span>
                             <span class="small text-muted">${fecha}</span>
@@ -2423,12 +2460,13 @@ async function cargarYRenderizarResenas(productoId) {
             <div class="mt-5 pt-5 border-top">
                 <div class="row justify-content-center">
                     <div class="col-lg-10">
-                        <h3 class="fw-bold mb-5 text-center"><i class="bi bi-chat-left-text me-2 text-primary"></i>Reseñas y Comentarios</h3>
+                        <h3 class="fw-bold mb-4"><i class="bi bi-chat-left-text me-2 text-primary"></i>Reseñas y Comentarios</h3>
                         <div class="row g-5">
                             <div class="col-md-5 order-2 order-md-1">
                                 ${formHTML}
                             </div>
                             <div class="col-md-7 order-1 order-md-2">
+                                ${cabeceraMediaHTML}
                                 ${listaHTML}
                             </div>
                         </div>
