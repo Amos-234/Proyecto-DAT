@@ -13,7 +13,7 @@ if (!empty($data->usuario_id) && !empty($data->total) && !empty($data->carrito))
         $pdo->beginTransaction();
 
         // 1. Creamos el registro principal del pedido
-        $stmt_pedido = $pdo->prepare("INSERT INTO pedidos (usuario_id, total, estado) VALUES (:uid, :total, 'Procesando')");
+        $stmt_pedido = $pdo->prepare("INSERT INTO pedidos (usuario_id, total, estado) VALUES (:uid, :total, 'Completado')");
         $stmt_pedido->execute([':uid' => $data->usuario_id, ':total' => $data->total]);
         
         $pedido_id = $pdo->lastInsertId();

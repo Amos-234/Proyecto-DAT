@@ -24,6 +24,11 @@ async function cargarProductosYArrancar() {
         if (usuarioSession) await cargarWishlist(JSON.parse(usuarioSession).id);
 
         iniciarEnrutador();
+        
+        if (usuarioSession) {
+            comprobarStockWishlist();
+        }
+        
     } catch (error) {
         console.error("Error al cargar productos:", error);
         alert("No se pudo conectar con la base de datos local.");
@@ -113,7 +118,7 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
 
     let botonCarrito = prod.stock > 0 
         ? `<button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito"><i class="bi bi-cart-plus"></i></button>` 
-        : `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">X</button>`;
+        : `<button class="btn btn-sm btn-secondary opacity-75" disabled title="Producto Agotado"><i class="bi bi-cart-x"></i></button>`;
 
     const enWishlist = wishlist.includes(prod.id);
     const corazon = localStorage.getItem('usuarioTelecom') 
@@ -643,9 +648,38 @@ function actualizarMenuNavegacion() {
 function cerrarSesion() {
     wishlist = [];
     localStorage.removeItem('usuarioTelecom');
-    alert("Has cerrado sesión correctamente.");
     actualizarMenuNavegacion();
-    window.location.hash = "#home";
+
+    const modalAnterior = document.getElementById('modalCierreSesion');
+    if (modalAnterior) modalAnterior.remove();
+
+    const modalHTML = `
+        <div class="modal fade" id="modalCierreSesion" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+              <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="bi bi-door-closed text-secondary" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="fw-bold mb-3 text-dark">¡Hasta pronto!</h3>
+                <p class="text-muted fs-5 mb-4">Has cerrado sesión correctamente. Esperamos verte de nuevo por aquí.</p>
+                <div class="spinner-border text-primary mt-2" role="status" style="width: 2rem; height: 2rem;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modalElement = document.getElementById('modalCierreSesion');
+    const modal = new bootstrap.Modal(modalElement);
+    
+    // Lo mostramos y a los 2 segundos recargamos la web suavemente
+    modal.show();
+    setTimeout(() => {
+        window.location.hash = "#home";
+        location.reload(); 
+    }, 2000);
 }
 
 // --- 8. REGISTRO DE NUEVO USUARIO ---
@@ -795,6 +829,8 @@ async function iniciarSesion(event) {
                     // CORRECCIÓN: Ahora el flujo por defecto te lleva directo a la Homepage
                     window.location.hash = "#home";               
                 }
+
+                comprobarStockWishlist();
             });
 
         } else {
@@ -1578,8 +1614,8 @@ function filtrarPedidosAdmin(texto) {
 
     tbody.innerHTML = filtrados.map(p => {
         const badgeColor = p.estado === 'Procesando' ? 'bg-warning text-dark' 
-                         : p.estado === 'Completado' ? 'bg-success' 
-                         : 'bg-secondary';
+                     : p.estado === 'Completado' ? 'bg-success text-white shadow-sm' 
+                     : 'bg-secondary text-white';
                          
         // Si el usuario borró su cuenta, p.nombre vendrá vacío, así que lo anonimizamos elegantemente
         const nombreCliente = p.nombre ? p.nombre : '<span class="text-danger small fw-bold"><i class="bi bi-person-x"></i> Cuenta Eliminada</span>';
@@ -2558,5 +2594,128 @@ async function enviarResena(productoId) {
         }
     } catch (e) {
         alert("Error de conexión al enviar la reseña.");
+    }
+}
+
+function comprobarStockWishlist() {
+    // 1. Buscamos qué productos de la wishlist tienen stock
+    const enStock = productos.filter(p => wishlist.includes(p.id) && p.stock > 0);
+    
+    // 2. Recuperamos qué productos ya le hemos notificado previamente
+    let notificados = JSON.parse(localStorage.getItem('wishlistNotificada')) || [];
+
+    // Si un producto de la wishlist vuelve a tener stock 0, lo borramos de notificados.
+    // Así, si el admin vuelve a reponerlo, el sistema lo detectará como "nuevo en stock".
+    const outOfStockIds = productos.filter(p => p.stock === 0).map(p => p.id);
+    notificados = notificados.filter(id => !outOfStockIds.includes(id));
+    localStorage.setItem('wishlistNotificada', JSON.stringify(notificados));
+
+    if (enStock.length === 0) return;
+
+    // 4. Filtramos para sacar solo los que son "Nuevos en stock" (no notificados aún)
+    const nuevosEnStock = enStock.filter(p => !notificados.includes(p.id));
+
+    if (nuevosEnStock.length > 0) {
+        // Renderizamos el modal con los productos nuevos
+        mostrarNotificacionStock(nuevosEnStock);
+
+        // Actualizamos la memoria para no volver a avisar de estos mismos productos en el futuro
+        notificados = [...notificados, ...nuevosEnStock.map(p => p.id)];
+        localStorage.setItem('wishlistNotificada', JSON.stringify(notificados));
+    }
+}
+
+function mostrarNotificacionStock(productosRestaurados) {
+    const modalAnterior = document.getElementById('modalStockWishlist');
+    if (modalAnterior) modalAnterior.remove();
+
+    // Generar la lista visual de productos (Llamamos a nueva función discreta)
+    const listaHTML = productosRestaurados.map(p => `
+        <div class="d-flex align-items-center mb-3 bg-white p-3 rounded shadow-sm border-start border-success border-4">
+            <img src="${p.imagen}" style="width: 50px; height: 50px; object-fit: contain;" class="me-3 rounded bg-light">
+            <div class="text-start flex-grow-1 overflow-hidden">
+                <h6 class="mb-1 fw-bold text-dark text-truncate">${p.nombre}</h6>
+                <small class="text-success fw-semibold" id="stock-aviso-${p.id}"><i class="bi bi-box-seam me-1"></i>¡${p.stock} unidades disponibles!</small>
+            </div>
+            <button class="btn btn-sm btn-success ms-3 shadow-sm flex-shrink-0" id="btn-aviso-add-${p.id}" onclick="agregarCarritoDiscreto(${p.id}, this)" title="Añadir directo al carrito">
+                <i class="bi bi-cart-plus fs-5"></i>
+            </button>
+        </div>
+    `).join('');
+
+    const modalHTML = `
+        <div class="modal fade" id="modalStockWishlist" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+              <div class="modal-header border-0 bg-success text-white" style="border-radius: 15px 15px 0 0;">
+                  <h5 class="modal-title fw-bold"><i class="bi bi-bell-fill me-2"></i>¡Novedades en tu Lista de Deseos!</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body p-4 text-center bg-light" style="border-radius: 0 0 15px 15px;">
+                <p class="text-muted mb-4 fs-6">Algunos productos que estabas siguiendo han vuelto a nuestro almacén.</p>
+                
+                <div class="mb-4 text-start" style="max-height: 280px; overflow-y: auto;">
+                    ${listaHTML}
+                </div>
+                
+                <div class="d-grid">
+                    <button class="btn btn-success btn-lg shadow-sm fw-bold" style="border-radius: 8px;" onclick="cerrarYRedirigirAWishlist()">
+                        <i class="bi bi-heart-fill me-2"></i>Ir a mi Lista de Deseos
+                    </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modalElement = document.getElementById('modalStockWishlist');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        modalElement.remove();
+    });
+}
+
+// --- Cerrar aviso e ir a la Wishlist ---
+function cerrarYRedirigirAWishlist() {
+    const modalElement = document.getElementById('modalStockWishlist');
+    if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) modal.hide();
+    }
+    window.location.hash = "#wishlist";
+}
+
+// Añade al carrito sin saltar el modal grande
+function agregarCarritoDiscreto(id, botonRef) {
+    const producto = productos.find(p => p.id === id);
+    if (!producto) return;
+
+    const itemExistente = carrito.find(item => item.id === id);
+    const cantidadActual = itemExistente ? itemExistente.cantidad : 0;
+
+    if (cantidadActual + 1 > producto.stock) {
+        alert("Ya has añadido todo el stock disponible al carrito.");
+        return;
+    }
+
+    if (itemExistente) {
+        itemExistente.cantidad++;
+    } else {
+        carrito.push({ ...producto, cantidad: 1 });
+    }
+
+    // Efecto visual de que ya se ha añadido (Gris y check)
+    botonRef.disabled = true;
+    botonRef.className = "btn btn-secondary btn-sm ms-3 disabled shadow-none px-3";
+    botonRef.innerHTML = '<i class="bi bi-check-lg fs-5"></i>';
+
+    const textoAviso = document.getElementById(`stock-aviso-${id}`);
+    if (textoAviso) {
+        textoAviso.className = "text-primary fw-bold";
+        textoAviso.innerHTML = '<i class="bi bi-cart-check-fill me-1"></i>Añadido al carrito';
     }
 }
