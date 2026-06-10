@@ -115,13 +115,44 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
         ? `<button class="btn btn-sm btn-success" onclick="agregarAlCarrito(${prod.id})" title="Añadir al carrito"><i class="bi bi-cart-plus"></i></button>` 
         : `<button class="btn btn-sm btn-secondary" disabled title="Sin existencias">X</button>`;
 
-    // NUEVO: Botón de Favoritos (Solo si hay sesión)
     const enWishlist = wishlist.includes(prod.id);
     const corazon = localStorage.getItem('usuarioTelecom') 
         ? `<button class="btn btn-sm ${enWishlist ? 'btn-danger' : 'btn-light border'} position-absolute top-0 end-0 m-2 rounded-circle shadow-sm" onclick="toggleWishlist(${prod.id})" style="z-index:10;"><i class="bi ${enWishlist ? 'bi-heart-fill' : 'bi-heart text-danger'}"></i></button>` 
         : '';
 
     const anchoEstilo = esCarrusel ? 'style="min-width: 280px; max-width: 280px;"' : '';
+
+    // --- CONFIGURACIÓN VISUAL DE LAS ESTRELLAS EN LA TARJETA ---
+    let uiEstrellas = '';
+    if (prod.total_resenas > 0) {
+        const mediaRedondeada = Math.round(prod.valoracion_media * 2) / 2;
+        let estrellasHTML = '';
+        
+        for (let i = 1; i <= 5; i++) {
+            if (i <= Math.floor(mediaRedondeada)) {
+                estrellasHTML += '<i class="bi bi-star-fill text-warning" style="font-size: 0.85rem;"></i>';
+            } else if (i === Math.ceil(mediaRedondeada) && mediaRedondeada % 1 !== 0) {
+                estrellasHTML += '<i class="bi bi-star-half text-warning" style="font-size: 0.85rem;"></i>';
+            } else {
+                estrellasHTML += '<i class="bi bi-star text-warning" style="font-size: 0.85rem;"></i>';
+            }
+        }
+        
+        // --- LA MEJORA VISUAL ESTÁ AQUÍ ---
+        const textoResenas = prod.total_resenas === 1 ? 'reseña' : 'reseñas';
+        const notaExacta = Number(prod.valoracion_media).toFixed(1); // Formatea la nota para que se vea como 4.5, 5.0...
+
+        uiEstrellas = `
+            <div class="mb-2 d-flex align-items-center">
+                <span class="fw-bold text-dark me-1" style="font-size: 0.85rem;">${notaExacta}</span>
+                <span class="me-2">${estrellasHTML}</span>
+                <span class="text-muted small" style="font-size: 0.80rem;">(${prod.total_resenas} ${textoResenas})</span>
+            </div>
+        `;
+    } else {
+        // Estado sutil y profesional si el producto no tiene opiniones aún
+        uiEstrellas = `<div class="mb-2 text-muted small d-flex align-items-center" style="font-size: 0.85rem;"><i class="bi bi-star text-muted opacity-50 me-1"></i> Sin reseñas</div>`;
+    }
 
     return `
         <div class="card h-100 shadow-sm border-0 bg-light position-relative" ${anchoEstilo}>
@@ -133,7 +164,8 @@ function generarTarjetaProducto(prod, esCarrusel = false) {
                     <span class="badge bg-secondary">${prod.marca}</span>
                     <span class="badge bg-info text-dark">${prod.categoria}</span>
                 </div>
-                <h5 class="card-title fs-6 fw-bold titulo-producto">${prod.nombre}</h5>
+                
+                ${uiEstrellas} <h5 class="card-title fs-6 fw-bold titulo-producto">${prod.nombre}</h5>
                 <p class="card-text text-muted small mb-3 flex-grow-1">${prod.descripcion.substring(0, 60)}...</p>
                 <div class="d-flex justify-content-between align-items-center mt-auto">
                     <div>
